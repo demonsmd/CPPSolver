@@ -12,8 +12,9 @@ class GRAPHMLReader
 public:
 	GRAPHMLReader(QString topo, const ControllerPlacementSettings* settings);
 
-	QVector<NODE>* getNodes(){return nodes;}
-	QVector<EDGE>* getEdges(){return edges;}
+	const QVector<NODE>* getNodes() const {return nodes;}
+	const QVector<EDGE>* getEdges() const {return edges;}
+	int getFixedConnectionCost(){return FixedConnectionCost;}
 
 private:
 	int FixedConnectionCost;

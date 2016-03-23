@@ -8,20 +8,45 @@ Network::Network(const QVector<NODE>* eNodes, const QVector<EDGE>* eEdges)
 	edges=eEdges;
 	nodesNumber=eNodes->size();
 	makeConMatr(connectivityMatrix, nodes, edges, nodesNumber);
-	makeShortestPathMatr(shortestPathMatrix, connectivityMatrix, nodesNumber);
+	makeShortestPathMatr();
 }
+
+//void Network::makeHopsPathMatr(QVector< QVector<int> > &hopsMatrix, const QVector<NODE>* nodes, const QVector<EDGE>* edges, int nodesNumber)
+//{
+//	QVector<QVector<int> > hopsConMatr;
+//	hopsConMatr.resize(nodesNumber);
+//	for (int i=0; i<nodesNumber;i++)
+//	{
+//		hopsConMatr[i].resize(nodesNumber);
+//		for (int j=0;j<nodesNumber;j++)
+//			if (i==j)
+//				hopsConMatr[i][i]=0;
+//			else
+//				hopsConMatr[i][j]=INF;
+//	}
+
+//	for (int i=0; i<edges->size();i++)
+//	{
+//		NODE src = (*nodes)[(*edges)[i].srcId];
+//		NODE dst = (*nodes)[(*edges)[i].dstId];
+//		hopsConMatr[src.id][dst.id] = hopsConMatr[dst.id][src.id] =1;
+//	}
+//	makeShortestPathMatr(hopsMatrix, hopsConMatr, nodesNumber);
+//}
 
 void Network::makeConMatr(QVector< QVector<int> > &connectivityMatrix, const QVector<NODE>* nodes, const QVector<EDGE>* edges, int nodesNumber)
 {
 	connectivityMatrix.resize(nodesNumber);
+	pathMatrix.resize(nodesNumber);
 	for (int i=0; i<nodesNumber;i++)
 	{
 		connectivityMatrix[i].resize(nodesNumber);
+		pathMatrix[i].resize(nodesNumber);
 		for (int j=0;j<nodesNumber;j++)
 			if (i==j)
 				connectivityMatrix[i][i]=0;
 			else
-				connectivityMatrix[i][j]=-1;
+				connectivityMatrix[i][j]=INF;
 	}
 
 	for (int i=0; i<edges->size();i++)
@@ -31,17 +56,46 @@ void Network::makeConMatr(QVector< QVector<int> > &connectivityMatrix, const QVe
 		connectivityMatrix[src.id][dst.id] =
 			connectivityMatrix[dst.id][src.id] =
 			(*edges)[i].latency;
+
+		pathMatrix[src.id][dst.id].push_back(src.id);
+		pathMatrix[src.id][dst.id].push_back(dst.id);
+		pathMatrix[dst.id][src.id].push_back(dst.id);
+		pathMatrix[dst.id][src.id].push_back(src.id);
 	}
 }
 
-void Network::makeShortestPathMatr(QVector< QVector<int> > &shortestPathMatrix, QVector< QVector<int> > connectivityMatrix, int nodesNumber)
+void Network::makeShortestPathMatr()
 {
-	shortestPathMatrix = connectivityMatrix;
+	shortestMatrix = connectivityMatrix;
 	for (int k=0;k<nodesNumber;k++)
 	    for (int i=0;i<nodesNumber;i++)
 		for (int j=0;j<nodesNumber;j++)
-		    shortestPathMatrix[i][j]=std::min(shortestPathMatrix[i][j],
-							shortestPathMatrix[i][k]+shortestPathMatrix[k][j]);
+		{
+			if (shortestMatrix[i][k]+shortestMatrix[k][j] < shortestMatrix[i][j])
+			{
+				shortestMatrix[i][j]= shortestMatrix[i][k]+shortestMatrix[k][j];
+
+				pathMatrix[i][j].clear();
+				for (int l=0;l<pathMatrix[i][k].size()-1;l++)
+					pathMatrix[i][j].push_back(pathMatrix[i][k][l]);
+				for (int l=0;l<pathMatrix[k][j].size();l++)
+					pathMatrix[i][j].push_back(pathMatrix[k][j][l]);
+			}
+		}
+}
+
+void Network::makeShortestMatr(QVector< QVector<int> > &shortestMatrix, const QVector< QVector<int> > &connectivityMatrix, int nodesNumber) const
+{
+	shortestMatrix = connectivityMatrix;
+	for (int k=0;k<nodesNumber;k++)
+	    for (int i=0;i<nodesNumber;i++)
+		for (int j=0;j<nodesNumber;j++)
+		{
+			if (shortestMatrix[i][k]+shortestMatrix[k][j] < shortestMatrix[i][j])
+			{
+				shortestMatrix[i][j]= shortestMatrix[i][k]+shortestMatrix[k][j];
+			}
+		}
 }
 
 void NetworkWithAlgorithms::biConSearchDFS(int curNode, int parent, int &time, QVector <int> &seen, QVector <int> &low)
@@ -51,7 +105,7 @@ void NetworkWithAlgorithms::biConSearchDFS(int curNode, int parent, int &time, Q
 
 	for(int child=0; child<nodesNumber; child++)
 	{
-		if(child != parent && child != curNode && (connectivityMatrix[curNode][child] >= 0))
+		if(child != parent && child != curNode && (connectivityMatrix[curNode][child] != INF))
 		{
 			if( seen[child] == 0) //не были в этой вершине
 			{
@@ -67,6 +121,49 @@ void NetworkWithAlgorithms::biConSearchDFS(int curNode, int parent, int &time, Q
 				rootHasOneChild=true;
 		}
 	}
+}
+
+NetworkWithAlgorithms::NetworkWithAlgorithms(const QVector<NODE>* nodes, const QVector<EDGE>* edges, const ControllerPlacementSettings* set, int FixedConnectionCost)
+	:Network(nodes, edges), settings(set)
+{
+	//создание connectionCostMatrix
+	connectionCostMatrix.resize(nodesNumber);
+	for (int i=0;i<nodesNumber;i++)
+		connectionCostMatrix[i].resize(nodesNumber);
+	for (int i=0;i<nodesNumber;i++)
+		for (int j=0;j<nodesNumber;j++)
+		{
+			if (i==j)
+			{
+				connectionCostMatrix[i][i]=0;
+				continue;
+			}
+			int cost=0;
+			int last = 0;
+			if (settings->UsingHops)
+			{
+				for (int k=1;k<pathMatrix[i][j].size();k++)
+				{
+					for (int l=0;l<edges->size();l++)
+					{
+						if (((*edges)[l].dstId==pathMatrix[i][j][k]
+						   &&(*edges)[l].srcId==pathMatrix[i][j][last])
+						   ||
+						    ((*edges)[l].srcId==pathMatrix[i][j][k]
+						   &&(*edges)[l].dstId==pathMatrix[i][j][last]))
+						{
+							cost+=(*edges)[l].HopCost;
+							break;
+						}
+					}
+					last++;
+				}
+			}
+			else
+				cost=FixedConnectionCost;
+			connectionCostMatrix[i][j]=cost;
+		}
+
 }
 
 bool NetworkWithAlgorithms::CheckBiconnectivity()

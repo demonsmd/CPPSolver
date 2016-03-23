@@ -1,4 +1,5 @@
 #include "CPSettings.h"
+#include "topoelements.h"
 
 ControllerPlacementSettings::ControllerPlacementSettings()
 {}

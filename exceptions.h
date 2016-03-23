@@ -13,6 +13,17 @@ private:
 	QString text;
 };
 
+class StopProgram
+{
+public:
+	StopProgram(const QString& text = "Работа программы прервана пользователем"):text(text){}
+
+	QString getText(){return text;}
+
+private:
+	QString text;
+};
+
 inline void ensureExp(bool exp, QString message)
 {
 	if (!exp) throw Exceptions(message);

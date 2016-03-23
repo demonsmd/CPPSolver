@@ -3,54 +3,59 @@
 
 #include "exceptions.h"
 #include "topoelements.h"
+#include "network.h"
+#include "CPSettings.h"
 #include <QSet>
+#include <QTimer>
 
-class ControllerPlacementAlgorothm
+class ControllerPlacementAlgorothm: public QObject
 {
+	Q_OBJECT
 public:
-	ControllerPlacementAlgorothm(const QVector<QVector<int> >* conMatr,
-				     const QVector<QVector<int> >* shPMatr,
-				     const QVector<NODE>* nodes,
-				     const QVector<EDGE>* edges)
-		:connectivityMatrix(conMatr),
-		  shortestPathMatrix(shPMatr),
-		  nodes(nodes),
-		  edges(edges),
-		  nodesNumber(nodes->size()){}
+	ControllerPlacementAlgorothm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus)
+		:network(net), settings(set), nodesNumber(net->getTopoSize()), toLongToWait(false), pStatus(pStatus){}
 
 	virtual CPPSolution solveCPP() = 0;
 	virtual ~ControllerPlacementAlgorothm(){}
 
 protected:
-	const QVector<QVector<int> >* connectivityMatrix;
-	const QVector<QVector<int> >* shortestPathMatrix;
-	const QVector<NODE>* nodes;
-	const QVector<EDGE>* edges;
+	const NetworkWithAlgorithms* network;
+	const ControllerPlacementSettings* settings;
 	CPPSolution bestSolution;	///лучшее найденное размещение
 	CPPSolution curSolution;	///текущее размещение
 	int nodesNumber;
-
-	virtual bool curConstraintsVerification();
-	virtual bool existDistributionForCur()=0;
+	bool toLongToWait;
+	const programStatus *pStatus;
+	bool curConstraintsVerification(int failSwitch, int failController, const QVector<QVector<int> >& newShortestMatrix, int syncTime= -1);
+	virtual bool existDistributionForCur(int failController, int failSwitch);
 	virtual void checkIfCurIsBest();
-	virtual bool nextDistribution()=0;
+	int computeSynTimeForCur(int failController, const QVector<QVector<int> >* newShortestMatrix);
+
+signals:
+	void curTopoProcess(int done, int from, int conNumber);
 };
 
 class EnumerationAlgorithm: public ControllerPlacementAlgorothm
 {
+	Q_OBJECT
 public:
-	EnumerationAlgorithm(const QVector<QVector<int> >* conMatr,
-			     const QVector<QVector<int> >* shPMatr,
-			     const QVector<NODE>* nodes,
-			     const QVector<EDGE>* edges)
-		:ControllerPlacementAlgorothm(conMatr, shPMatr, nodes, edges){}
+	EnumerationAlgorithm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus)
+		:ControllerPlacementAlgorothm(net, set, pStatus), analyseTime(30)
+	{
+		connect(&timer, SIGNAL(timeout()), this, SLOT(timeOut()));
+	}
 
 	CPPSolution solveCPP();
 
 private:
+	unsigned long int totalNumberOfIterations;
+	unsigned long int iteration;
 	bool nextPlacement();
-	bool existDistributionForCur();
-	bool nextDistribution();
+	QTimer timer;
+	int analyseTime;
+
+private slots:
+	void timeOut();
 };
 
 #endif // CONTROLLERPLACEMENTALGOROTHM_H

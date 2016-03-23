@@ -55,12 +55,14 @@ void GRAPHMLReader::validate()
 		ensureExp((*nodes)[i].longitude!=-1000,QString("не заданы координаты узла %1").arg(QString::number((*nodes)[i].id)));
 		ensureExp((*nodes)[i].latitude>-90 && (*nodes)[i].latitude<90,QString("широта не может принимать значение %1!").arg(QString::number((*nodes)[i].latitude)));
 		ensureExp((*nodes)[i].longitude>-180 && (*nodes)[i].longitude<180,QString("долгота не может принимать значение %1!").arg(QString::number((*nodes)[i].longitude)));
-		if (!CPSettings->FixedCC && (*nodes)[i].ControllerCost<0)
+
+		if (CPSettings->FixedCC || (*nodes)[i].ControllerCost<0)
 			(*nodes)[i].ControllerCost=CPSettings->CCost;
-		if (!CPSettings->FixedSP && (*nodes)[i].SwitchLoad<0)
-			(*nodes)[i].SwitchLoad=CPSettings->SPerfomance;
-		if (!CPSettings->FixedCP && (*nodes)[i].ControllerLoad<0)
+		if (CPSettings->FixedCP || (*nodes)[i].ControllerLoad<0)
 			(*nodes)[i].ControllerLoad=CPSettings->CPerfomance;
+		if (CPSettings->FixedSP || (*nodes)[i].SwitchLoad<0)
+			(*nodes)[i].SwitchLoad=CPSettings->SPerfomance;
+
 		ensureExp((*nodes)[i].id>=0, QString("id не может принимать значение %1").arg(QString::number((*nodes)[i].id)));
 		ensureExp(!nset.contains((*nodes)[i].id), QString("найдены 2 вершины с id =  %1").arg(QString::number((*nodes)[i].id)));
 		nset.insert((*nodes)[i].id);

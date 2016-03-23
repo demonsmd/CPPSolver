@@ -111,7 +111,7 @@
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
               <item row="1" column="1">
-               <widget class="QSpinBox" name="bSpinBox">
+               <widget class="QSpinBox" name="aSpinBox">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -174,7 +174,7 @@
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QSpinBox" name="aSpinBox">
+               <widget class="QSpinBox" name="bSpinBox">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -393,13 +393,6 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
-            <widget class="QSpinBox" name="ConnectionCostSpinBox">
-             <property name="maximum">
-              <number>16777215</number>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="0" colspan="2">
             <widget class="QCheckBox" name="HopsCheckBox">
              <property name="toolTip">
@@ -410,6 +403,13 @@
              </property>
              <property name="checked">
               <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QSpinBox" name="ConnectionCostSpinBox">
+             <property name="maximum">
+              <number>16777215</number>
              </property>
             </widget>
            </item>

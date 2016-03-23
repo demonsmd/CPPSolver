@@ -17,21 +17,31 @@ GRAPHVIZ::GRAPHVIZ(QString dot, QString img, QString format)
 
 void GRAPHVIZ::visualize(QString name, const SolvedTopo& solution)
 {
+	QStringList colors;
+	colors	<< "#FF0000" << "#00FF00" << "#0000FF"<< "#FFFF00" << "#FF00FF" << "#00FFFF"
+		<< "#FFCCCC" << "#CCFFCC" << "#CCCCFF"<< "#FFFFCC" << "#FFCCFF" << "#CCFFFF"
+		<< "#FF9933" << "#4C9900" << "#66B2FF"<< "#9933FF" << "#990000" << "#FFFFFF"
+		<< "#FFFFFF" << "#A0A0A0";
+
+
+
+
 	QProcess* process = new QProcess(this);
-	connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), process, SLOT(deleteLater()));
+//	connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), process, SLOT(deleteLater()));
 	QStringList arg;
 	arg<<QString("-T%1").arg(format)
 		<<"-Kfdp"
-		<<QString("-o%1/%2.%3").arg(pathToImg).arg(name).arg(format);
+		<<"-o"
+		<<QString("%1/%2.%3").arg(pathToImg).arg(name).arg(format);
 
 	QSet<int> conSet;
 	for (int i=0;i<solution.solution.controllerPlacement.size();i++)
 		conSet.insert(solution.solution.controllerPlacement[i]);
 
 	process->start(pathToDot,arg);
-	process->write("strict graph topo {");
-//	process->write("graph [ size =\"15,9\"];");
-	process->write("graph [ dpi = 300 ];");
+	process->write("strict graph topo {\n");
+//	process->write("graph [ size =\"15,9\"];\n");
+	process->write("graph [ dpi = 300 ];\n");
 	for (int i=0;i<solution.nodes.size();i++)
 	{
 		int minX, minY;
@@ -39,24 +49,38 @@ void GRAPHVIZ::visualize(QString name, const SolvedTopo& solution)
 		calculateScaleK(solution, minX, minY, scale);
 		process->write((QString::number(i) + "[").toStdString().c_str());
 		if (conSet.contains(i))
-			process->write("shape = box");
-		process->write(QString("pos = \"%1,%2!\"]")
+		{
+			process->write("shape = box\n");
+		}
+		if (solution.solution.masterControllersDistribution.size()>0)
+		{
+			process->write("style=filled\n");
+			process->write(QString("fillcolor=\"%1\"\n").arg(colors[solution.solution.masterControllersDistribution[i]%colors.size()]).toStdString().c_str());
+		}
+		process->write(QString("pos = \"%1,%2!\"]\n")
 			       .arg(QString::number((solution.nodes[i].longitude-minY)/scale))
 			       .arg(QString::number((solution.nodes[i].latitude-minX)/scale))
 			       .toStdString().c_str());
 	}
 	for (int i=0;i<solution.edges.size();i++)
 	{
-		process->write(QString("%1 -- %2 [label=\"%3\"")
+		process->write(QString("%1 -- %2 [label=\"%3\"\n")
 			       .arg(QString::number(solution.edges[i].srcId))
 			       .arg(QString::number(solution.edges[i].dstId))
 			       .arg(QString::number(solution.edges[i].latency))
 			       .toStdString().c_str());
-		process->write("fontsize=7];");
+
+		process->write("fontsize=7];\n");
+
 	}
 	process->write("}");
 	process->closeWriteChannel();
-	process->waitForFinished(2000);
+	if (!process->waitForFinished(10000))
+	{
+		process->kill();
+		throw Exceptions("killing process");
+	}
+	delete process;
 
 	QRect rec = QApplication::desktop()->screenGeometry();
 	QLabel* label = new QLabel;

@@ -90,6 +90,8 @@ void MainWindow::initConnections()
 		this, SLOT(SwitchPerfomanceSpinBox_valueChanged(int)));
 	connect(CPPParametersUi->ControllerCostSpinBox, SIGNAL(valueChanged(int)),
 		this, SLOT(ControllerCostSpinBox_valueChanged(int)));
+	connect(CPPParametersUi->ConnectionCostSpinBox, SIGNAL(valueChanged(int)),
+		this, SLOT(ConnectionCostSpinBox_valueChanged(int)));
 	connect(CPPParametersUi->fixedTimeSB, SIGNAL(valueChanged(int)),
 		this, SLOT(fixedTimeSB_valueChanged(int)));
 	connect(CPPParametersUi->ControllerPerfomanceCheckBox, SIGNAL(clicked(bool)),
@@ -405,7 +407,7 @@ void MainWindow::bSpinBox_valueChanged(int arg1)
 
 void MainWindow::aSpinBox_valueChanged(int arg1)
 {
-	CPSettings->SCTF_b=arg1;
+	CPSettings->SCTF_a=arg1;
 }
 
 void MainWindow::ControllerPerfomanceCheckBox_clicked(bool checked)

@@ -36,7 +36,6 @@ void ControllerPlacementService::saveNetworkSolution(int i)
 	solvedTopoList[i].edges=(*network->getEdges());
 	solvedTopoList[i].nodes=(*network->getNodes());
 	solvedTopoList[i].solution.avgLayency=solution.avgLayency;
-	solvedTopoList[i].solution.controllerNumber=solution.controllerNumber;
 	solvedTopoList[i].solution.controllerPlacement=solution.controllerPlacement;
 	solvedTopoList[i].solution.masterControllersDistribution=solution.masterControllersDistribution;
 //	solvedTopoList[i].solution.reserveControllersDistribution=solution.reserveControllersDistribution;
@@ -66,31 +65,33 @@ void ControllerPlacementService::startButtonPressed()
 		toLog("Найдено входных файлов: " + QString::number(inFilesList.size()));
 		solvedTopoList.resize(inFilesList.size());
 
-		for (int topoNum=0 ; topoNum<inFilesList.size(); topoNum++)
+		for (curTopoNum=0 ; curTopoNum<inFilesList.size(); curTopoNum++)
 		{
 			try
 			{
 				if (CPSettings->useGraphviz)
-					topoTag = QString("<a href=\"graphviz:%1\">%2</a>").arg(QString::number(topoNum)).arg(inFilesList.at(topoNum));
+					topoTag = QString("<a href=\"graphviz:%1\">%2</a>").arg(QString::number(curTopoNum)).arg(inFilesList.at(curTopoNum));
 				else
-					topoTag = QString("<font color=\"blue\">%1</font>").arg(inFilesList.at(topoNum));
+					topoTag = QString("<font color=\"blue\">%1</font>").arg(inFilesList.at(curTopoNum));
 
-				emit processingTopo(0,inFilesList.size(), topoNum, QString("Обрабатывается топология %1").arg(inFilesList.at(topoNum)));
-				xmlReader = new GRAPHMLReader(inFilesList.at(topoNum), CPSettings);
-				network = new NetworkWithAlgorithms(xmlReader->getNodes(),xmlReader->getEdges());
+//				emit processingTopo(0,inFilesList.size()-1, curTopoNum, QString("Обрабатывается топология %1").arg(inFilesList.at(curTopoNum)));
+				xmlReader = new GRAPHMLReader(inFilesList.at(curTopoNum), CPSettings);
+
+				network = new NetworkWithAlgorithms(xmlReader->getNodes(),xmlReader->getEdges()
+						,CPSettings ,xmlReader->getFixedConnectionCost());
 				ensureExp(network->CheckBiconnectivity(), "Сеть не является двусвязной");
 
 				if (CPSettings->algorithm==0)
-					algorithm = new EnumerationAlgorithm(network->getConnectivityMatrix(), network->getShortestPathMatrix(), network->getNodes(), network->getEdges());
+					algorithm = new EnumerationAlgorithm(network, CPSettings, &PStatus);
 				else if (CPSettings->algorithm==1)
 					ensureExp(false, "Жадный алгоритм ещё не написан");
+				connect(algorithm, SIGNAL(curTopoProcess(int, int, int)),
+					this, SLOT(curTopoProcess(int, int, int)));
 				solution = algorithm->solveCPP();
-				saveNetworkSolution(topoNum);
+
+				saveNetworkSolution(curTopoNum);
 
 				doneTopos++;
-				QCoreApplication::processEvents();
-				if (PStatus == NOTRUNNING)
-					throw Exceptions("Работа программы прервана пользователем");
 				toLog(QString("В топологии %1[%2] была <font color=\"green\"><b><u>успешно</u></b></font> обработана!").arg(topoTag).arg(QString::number(network->getTopoSize())));
 				delete algorithm;
 				delete network;
@@ -98,24 +99,30 @@ void ControllerPlacementService::startButtonPressed()
 			}
 			catch (Exceptions ex)
 			{
-				if (PStatus == NOTRUNNING)
-					throw Exceptions("Работа программы прервана пользователем");
-				toLog(QString("В топологии <font color=\"blue\">%1</font> была найдена <font color=\"red\"><b><u>ошибка</u></b>: %2</font>. Эта топология будет пропущена!").arg(inFilesList.at(topoNum)).arg(ex.getText()));
+				toLog(QString("В топологии <font color=\"blue\">%1</font> была найдена <font color=\"red\"><b><u>ошибка</u></b>: %2</font>. Эта топология будет пропущена!").arg(inFilesList.at(curTopoNum)).arg(ex.getText()));
 			}
 		}
 		emit processingTopo(0,0,0,QString("Готово! %1 из %2 файлов успешно обработаны").arg(QString::number(doneTopos)).arg(QString::number(inFilesList.size())));
 		PStatus = NOTRUNNING;
 		programFinnished();
 	}
-	catch(Exceptions ex)
+	catch(StopProgram ex)
 	{
 		toLog(ex.getText());
-		if (PStatus == NOTRUNNING)
-			emit processingTopo(0,0,0,QString("Прервано пользователем."));
-		else
-			PStatus = NOTRUNNING;
+		emit processingTopo(0,0,0,QString("Прервано пользователем."));
 		programFinnished();
 	}
+	catch(...)
+	{
+		toLog("lol cats");
+		programFinnished();
+	}
+
+}
+
+void ControllerPlacementService::curTopoProcess(int done, int from, int conNumber)
+{
+	emit processingTopo(0,from, done, QString("Обрабатывается топология [%1/%2] %3: %4 контроллеров").arg(curTopoNum+1).arg(inFilesList.size()).arg(inFilesList.at(curTopoNum)).arg(conNumber));
 }
 
 void ControllerPlacementService::stopButtonPressed()
@@ -132,11 +139,11 @@ void ControllerPlacementService::networkNamePressed(QUrl url)
 		{
 			ensureExp(CPSettings->useGraphviz, "визуализаор не активен");
 			bool ok;
-			int topoNum = surl.remove(0,9).toInt(&ok);
+			int curTopoNum = surl.remove(0,9).toInt(&ok);
 			ensureExp(ok,"невозможно определить номер топологии");
 
-			QFileInfo finfo(inFilesList[topoNum]);
-			visualizator->visualize(finfo.baseName(), solvedTopoList[topoNum]);
+			QFileInfo finfo(inFilesList[curTopoNum]);
+			visualizator->visualize(finfo.baseName(), solvedTopoList[curTopoNum]);
 		}
 		catch(Exceptions ex)
 		{

@@ -18,8 +18,6 @@
 
 using namespace std;
 
-enum programStatus {RUNNING, NOTRUNNING};
-
 class ControllerPlacementService: public QObject
 {
 	Q_OBJECT
@@ -42,6 +40,7 @@ private:
 	CPPSolution solution;
 	QVector<SolvedTopo> solvedTopoList;		///список рёбер, который используется для построения графа
 	GRAPHVIZ* visualizator;
+	int curTopoNum;
 
 private:
 	void getInFiles();
@@ -51,6 +50,7 @@ public slots:
 	void startButtonPressed();
 	void stopButtonPressed();
 	void networkNamePressed(QUrl url);
+	void curTopoProcess(int done, int from, int conNumber);
 
 signals:
 	void toLog(const QString& text);
