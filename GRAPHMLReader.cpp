@@ -12,9 +12,9 @@ GRAPHMLReader::GRAPHMLReader(QString fileName, const ControllerPlacementSettings
 	edges = new QVector<EDGE>;
 	CPSettings = settings;
 	parce(fileName);
-	validate();
 	normalizeNumeration();
 	latencyCalculate();
+	validate();
 }
 
 void GRAPHMLReader::latencyCalculate()
@@ -25,6 +25,7 @@ void GRAPHMLReader::latencyCalculate()
 			(*nodes)[(*edges)[i].srcId].longitude,
 			(*nodes)[(*edges)[i].dstId].latitude,
 			(*nodes)[(*edges)[i].dstId].longitude);
+		//sfg
 	}
 }
 
@@ -46,7 +47,7 @@ void GRAPHMLReader::normalizeNumeration()
 
 void GRAPHMLReader::validate()
 {
-	if (!CPSettings->UsingHops && FixedConnectionCost<0)
+	if (CPSettings->FixedSCC && FixedConnectionCost<0)
 		FixedConnectionCost=CPSettings->SCCost;
 	QSet<int> nset;
 	for (int i=0;i<nodes->size();i++)
@@ -69,8 +70,13 @@ void GRAPHMLReader::validate()
 	}
 	for (int i=0;i<edges->size();i++)
 	{
-		if (CPSettings->UsingHops && (*edges)[i].HopCost<0)
-			(*edges)[i].HopCost=CPSettings->SCCost;
+		if ((*edges)[i].HopCost<0)
+		{
+			if (CPSettings->HopsDepSCC)
+				(*edges)[i].HopCost=CPSettings->SCCost;
+			else if (CPSettings->LatDepSCC)
+				(*edges)[i].HopCost=(*edges)[i].latency / CPSettings->SCCost;
+		}
 		ensureExp(nset.contains((*edges)[i].srcId), QString("ошибка! не найдена вершина %1 для ребра").arg(QString::number((*edges)[i].srcId)));
 		ensureExp(nset.contains((*edges)[i].dstId), QString("ошибка! не найдена вершина %1 для ребра").arg(QString::number((*edges)[i].dstId)));
 	}

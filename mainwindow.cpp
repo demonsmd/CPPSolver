@@ -90,7 +90,7 @@ void MainWindow::initConnections()
 		this, SLOT(SwitchPerfomanceSpinBox_valueChanged(int)));
 	connect(CPPParametersUi->ControllerCostSpinBox, SIGNAL(valueChanged(int)),
 		this, SLOT(ControllerCostSpinBox_valueChanged(int)));
-	connect(CPPParametersUi->ConnectionCostSpinBox, SIGNAL(valueChanged(int)),
+	connect(CPPParametersUi->ConCostSB, SIGNAL(valueChanged(int)),
 		this, SLOT(ConnectionCostSpinBox_valueChanged(int)));
 	connect(CPPParametersUi->fixedTimeSB, SIGNAL(valueChanged(int)),
 		this, SLOT(fixedTimeSB_valueChanged(int)));
@@ -100,20 +100,35 @@ void MainWindow::initConnections()
 		this, SLOT(SwitchPerfomanceCheckBox_clicked(bool)));
 	connect(CPPParametersUi->ControllerCostCheckBox, SIGNAL(clicked(bool)),
 		this, SLOT(ControllerCostCheckBox_clicked(bool)));
-	connect(CPPParametersUi->ConnectionCostCheckBox, SIGNAL(clicked(bool)),
-		this, SLOT(ConnectionCostCheckBox_clicked(bool)));
-	connect(CPPParametersUi->HopsCheckBox, SIGNAL(clicked(bool)),
-		this, SLOT(HopsCheckBox_clicked(bool)));
+	connect(CPPParametersUi->FixedConCostRB, SIGNAL(clicked(bool)),
+		this, SLOT(FixedConCostRB_clicked(bool)));
+	connect(CPPParametersUi->HopsDepConCostRB, SIGNAL(clicked(bool)),
+		this, SLOT(HopsDepConCostRB_clicked(bool)));
+	connect(CPPParametersUi->LatDepConCostRB, SIGNAL(clicked(bool)),
+		this, SLOT(LatDepConCostRB_clicked(bool)));
 	connect(CPPParametersUi->LinearRB, SIGNAL(clicked()),
 		this, SLOT(LinearRB_clicked()));
 	connect(CPPParametersUi->constRB, SIGNAL(clicked()),
 		this, SLOT(constRB_clicked()));
+
 	connect(AlgoParamUi->topoSizeSB, SIGNAL(valueChanged(int)),
 		this, SLOT(topoSizeSB_valueChanged(int)));
-	connect(AlgoParamUi->iterationsSB, SIGNAL(valueChanged(int)),
-		this, SLOT(iterationsSB_valueChanged(int)));
 	connect(AlgoParamUi->algoTimeSB, SIGNAL(valueChanged(int)),
 		this, SLOT(algoTimeSB_valueChanged(int)));
+	connect(AlgoParamUi->fixedConNumSB, SIGNAL(valueChanged(int)),
+		this, SLOT(fixedConNumSB_valueChanged(int)));
+	connect(AlgoParamUi->incrementalConNumSB, SIGNAL(valueChanged(int)),
+		this, SLOT(incrementalConNumSB_valueChanged(int)));
+	connect(AlgoParamUi->TopoSizeDependentConNumFromSB, SIGNAL(valueChanged(int)),
+		this, SLOT(TopoSizeDependentConNumFromSB_valueChanged(int)));
+	connect(AlgoParamUi->TopoSizeDependentConNumToSB, SIGNAL(valueChanged(int)),
+		this, SLOT(TopoSizeDependentConNumToSB_valueChanged(int)));
+	connect(AlgoParamUi->FixedConNumRB, SIGNAL(clicked()),
+		this, SLOT(fixedConSB_clicked()));
+	connect(AlgoParamUi->incrementalConNumRB, SIGNAL(clicked()),
+		this, SLOT(incrementalConSB_clicked()));
+	connect(AlgoParamUi->TopoSizeDependentConNumRB, SIGNAL(clicked()),
+		this, SLOT(TopoSizeDependentConSB_clicked()));
 
 }
 
@@ -145,24 +160,33 @@ void MainWindow::applySettings()
 			ui->chooseDotLabel->setText("dot файл не задан");
 		finfo.setFile(CPSettings->pathToImgFolder);
 		ui->chooseImgLabel->setText(finfo.baseName());
+
 		CPPParametersUi->LmaxSpinBox->setValue(CPSettings->Lmax);
 		CPPParametersUi->ControllerPerfomanceSpinBox->setValue(CPSettings->CPerfomance);
 		CPPParametersUi->SwitchPerfomanceSpinBox->setValue(CPSettings->SPerfomance);
-		CPPParametersUi->ConnectionCostSpinBox->setValue(CPSettings->SCCost);
+		CPPParametersUi->ConCostSB->setValue(CPSettings->SCCost);
 		CPPParametersUi->ControllerCostSpinBox->setValue(CPSettings->CCost);
 		CPPParametersUi->aSpinBox->setValue(CPSettings->SCTF_a);
 		CPPParametersUi->bSpinBox->setValue(CPSettings->SCTF_b);
 		CPPParametersUi->fixedTimeSB->setValue(CPSettings->constST);
-		CPPParametersUi->ConnectionCostCheckBox->setChecked(CPSettings->FixedSCC);
+		CPPParametersUi->FixedConCostRB->setChecked(CPSettings->FixedSCC);
 		CPPParametersUi->ControllerCostCheckBox->setChecked(CPSettings->FixedCC);
 		CPPParametersUi->ControllerPerfomanceCheckBox->setChecked(CPSettings->FixedCP);
 		CPPParametersUi->SwitchPerfomanceCheckBox->setChecked(CPSettings->FixedSP);
-		CPPParametersUi->HopsCheckBox->setChecked(CPSettings->UsingHops);
+		CPPParametersUi->HopsDepConCostRB->setChecked(CPSettings->HopsDepSCC);
+		CPPParametersUi->LatDepConCostRB->setChecked(CPSettings->LatDepSCC);
 		CPPParametersUi->constRB->setChecked(CPSettings->constST);
 		CPPParametersUi->LinearRB->setChecked(!CPSettings->constST);
+
 		AlgoParamUi->algoTimeSB->setValue(CPSettings->algoTime);
-		AlgoParamUi->iterationsSB->setValue(CPSettings->iterations);
 		AlgoParamUi->topoSizeSB->setValue(CPSettings->maxTopoSize);
+		AlgoParamUi->fixedConNumSB->setValue(CPSettings->FixedConNum);
+		AlgoParamUi->FixedConNumRB->setChecked(CPSettings->FixedCon);
+		AlgoParamUi->incrementalConNumSB->setValue(CPSettings->IncrementalConNum);
+		AlgoParamUi->incrementalConNumRB->setChecked(CPSettings->IncrementalCon);
+		AlgoParamUi->TopoSizeDependentConNumFromSB->setValue(CPSettings->PercentageConNumFrom);
+		AlgoParamUi->TopoSizeDependentConNumToSB->setValue(CPSettings->PercentageConNumTo);
+		AlgoParamUi->TopoSizeDependentConNumRB->setChecked(CPSettings->PercentageCon);
 	}
 	catch (Exceptions ex)
 	{
@@ -425,14 +449,33 @@ void MainWindow::ControllerCostCheckBox_clicked(bool checked)
 	CPSettings->FixedCC=checked;
 }
 
-void MainWindow::ConnectionCostCheckBox_clicked(bool checked)
+void MainWindow::FixedConCostRB_clicked(bool checked)
 {
 	CPSettings->FixedSCC=checked;
+	CPSettings->HopsDepSCC=!checked;
+	CPSettings->LatDepSCC=!checked;
+	CPPParametersUi->ConCostSB->setMinimum(0);
 }
 
-void MainWindow::HopsCheckBox_clicked(bool checked)
+void MainWindow::HopsDepConCostRB_clicked(bool checked)
 {
-	CPSettings->UsingHops=checked;
+	CPSettings->HopsDepSCC=checked;
+	CPSettings->FixedSCC=!checked;
+	CPSettings->LatDepSCC=!checked;
+	CPPParametersUi->ConCostSB->setMinimum(0);
+}
+
+void MainWindow::LatDepConCostRB_clicked(bool checked)
+{
+	CPSettings->LatDepSCC=checked;
+	CPSettings->HopsDepSCC=!checked;
+	CPSettings->FixedSCC=!checked;
+	CPPParametersUi->ConCostSB->setMinimum(1);
+	if (CPSettings->SCCost==0)
+	{
+		CPSettings->SCCost=1;
+		CPPParametersUi->ConCostSB->setValue(1);
+	}
 }
 
 void MainWindow::LinearRB_clicked()
@@ -454,12 +497,54 @@ void MainWindow::topoSizeSB_valueChanged(int arg1)
 	CPSettings->maxTopoSize=arg1;
 }
 
-void MainWindow::iterationsSB_valueChanged(int arg1)
-{
-	CPSettings->iterations=arg1;
-}
-
 void MainWindow::algoTimeSB_valueChanged(int arg1)
 {
 	CPSettings->algoTime=arg1;
+}
+
+void MainWindow::fixedConNumSB_valueChanged(int arg1)
+{
+	CPSettings->FixedConNum=arg1;
+}
+
+void MainWindow::incrementalConNumSB_valueChanged(int arg1)
+{
+	CPSettings->IncrementalConNum=arg1;
+}
+
+void MainWindow::TopoSizeDependentConNumFromSB_valueChanged(int arg1)
+{
+	CPSettings->PercentageConNumFrom=arg1;
+}
+
+void MainWindow::TopoSizeDependentConNumToSB_valueChanged(int arg1)
+{
+	CPSettings->PercentageConNumTo=arg1;
+}
+
+void MainWindow::fixedConSB_clicked()
+{
+	CPSettings->FixedCon=true;
+	CPSettings->IncrementalCon=false;
+	CPSettings->PercentageCon=false;
+	AlgoParamUi->incrementalConNumRB->setChecked(false);
+	AlgoParamUi->TopoSizeDependentConNumRB->setChecked(false);
+}
+
+void MainWindow::incrementalConSB_clicked()
+{
+	CPSettings->FixedCon=false;
+	CPSettings->IncrementalCon=true;
+	CPSettings->PercentageCon=false;
+	AlgoParamUi->FixedConNumRB->setChecked(false);
+	AlgoParamUi->TopoSizeDependentConNumRB->setChecked(false);
+}
+
+void MainWindow::TopoSizeDependentConSB_clicked()
+{
+	CPSettings->FixedCon=false;
+	CPSettings->IncrementalCon=false;
+	CPSettings->PercentageCon=true;
+	AlgoParamUi->FixedConNumRB->setChecked(false);
+	AlgoParamUi->incrementalConNumRB->setChecked(false);
 }

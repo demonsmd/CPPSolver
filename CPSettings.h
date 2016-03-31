@@ -30,12 +30,20 @@ public:
 	bool FixedSP;
 	bool FixedCC;
 	bool FixedSCC;
+	bool HopsDepSCC;
+	bool LatDepSCC;
 	bool constST;
-	bool UsingHops;
 	bool useGraphviz;
+
 	int algoTime;
 	int maxTopoSize;
-	int iterations;
+	int FixedConNum;
+	int IncrementalConNum;
+	int PercentageConNumFrom;
+	int PercentageConNumTo;
+	bool FixedCon;
+	bool IncrementalCon;
+	bool PercentageCon;
 };
 
 class DefaultCPSettings
@@ -61,12 +69,20 @@ public:
 	bool FixedSP;
 	bool FixedCC;
 	bool FixedSCC;
+	bool HopsDepSCC;
+	bool LatDepSCC;
 	bool constST;
-	bool UsingHops;
 	bool useGraphviz;
+
 	int algoTime;
 	int maxTopoSize;
-	int iterations;
+	int FixedConNum;
+	int IncrementalConNum;
+	int PercentageConNumFrom;
+	int PercentageConNumTo;
+	bool FixedCon;
+	bool IncrementalCon;
+	bool PercentageCon;
 };
 
 #endif // CPSETTINGS_H

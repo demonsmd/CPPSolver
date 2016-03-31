@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>660</width>
-    <height>413</height>
+    <width>665</width>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -53,6 +53,9 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QGroupBox" name="groupBox_2">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Для каждой топологии размещать данное количество контроллеров&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="title">
            <string/>
           </property>
@@ -72,6 +75,9 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_4">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Для каждой топологии количество контроллеров определяется числом &amp;quot;Начиная с&amp;quot;. Если нет размещения, то количество контроллеров увеличивается на 1.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="title">
            <string/>
           </property>
@@ -86,7 +92,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_4">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -104,23 +110,33 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBox_3">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Начальное количество контроллеров определяется как число &amp;quot;от&amp;quot; процентов от размера сети. Максимальное количество контроллеров также берётся из числа &amp;quot;до&amp;quot; процентов от размера топологии&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="title">
            <string/>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="1" column="1">
-            <widget class="QSpinBox" name="TopoSizeDependentConNumSB"/>
+            <widget class="QSpinBox" name="TopoSizeDependentConNumFromSB">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+            </widget>
            </item>
            <item row="1" column="0">
             <widget class="QLabel" name="label_2">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>% от количества узлов в сети</string>
+              <string>от</string>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -131,6 +147,29 @@
             <widget class="QRadioButton" name="TopoSizeDependentConNumRB">
              <property name="text">
               <string>% от размера сети</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>до</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QSpinBox" name="TopoSizeDependentConNumToSB">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
              </property>
             </widget>
            </item>

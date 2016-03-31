@@ -22,13 +22,21 @@ DefaultCPSettings::DefaultCPSettings()
 	FixedCP = true;
 	FixedSP = true;
 	FixedCC = true;
-	FixedSCC = true;
-	UsingHops = true;
+	FixedSCC = false;
+	HopsDepSCC = false;
+	LatDepSCC = true;
 	constST = false;
 	useGraphviz = true;
-	algoTime = 0;
-	maxTopoSize = 0;
-	iterations = 0;
+
+	algoTime = 180;
+	maxTopoSize = 20;
+	FixedConNum = 5;
+	IncrementalConNum = 2;
+	PercentageConNumFrom = 2;
+	PercentageConNumTo = 10;
+	IncrementalCon = true;
+	FixedCon = false;
+	PercentageCon = false;
 }
 
 void ControllerPlacementSettings::loadSettings(QSettings* const settings)
@@ -39,6 +47,8 @@ void ControllerPlacementSettings::loadSettings(QSettings* const settings)
 	pathToGraphviz = settings->value("pathToGraphviz", def.pathToGraphviz).toString();
 	pathToImgFolder = settings->value("pathToImgFolder", def.pathToImgFolder).toString();
 	algorithm = settings->value("algorithm", def.algorithm).toInt();
+	useGraphviz = settings->value("useGraphviz", def.useGraphviz).toBool();
+
 	Lmax = settings->value("Lmax", def.Lmax).toInt();
 	CPerfomance = settings->value("CPerfomance", def.CPerfomance).toInt();
 	SPerfomance = settings->value("SPerfomance", def.SPerfomance).toInt();
@@ -47,16 +57,23 @@ void ControllerPlacementSettings::loadSettings(QSettings* const settings)
 	SCTF_a = settings->value("SCTF_a", def.SCTF_a).toInt();
 	SCTF_b = settings->value("SCTF_b", def.SCTF_b).toInt();
 	syncTime = settings->value("syncTime", def.syncTime).toInt();
-	algoTime = settings->value("algoTime", def.algoTime).toInt();
-	maxTopoSize = settings->value("maxTopoSize", def.maxTopoSize).toInt();
-	iterations = settings->value("iterations", def.iterations).toInt();
 	FixedCP = settings->value("FixedCP", def.FixedCP).toBool();
 	FixedSP = settings->value("FixedSP", def.FixedSP).toBool();
 	FixedCC = settings->value("FixedCC", def.FixedCC).toBool();
 	FixedSCC = settings->value("FixedSCC", def.FixedSCC).toBool();
-	UsingHops = settings->value("UsingHops", def.UsingHops).toBool();
+	HopsDepSCC = settings->value("HopsDepSCC", def.HopsDepSCC).toBool();
+	LatDepSCC = settings->value("LatDepSCC", def.LatDepSCC).toBool();
 	constST = settings->value("constST", def.constST).toBool();
-	useGraphviz = settings->value("useGraphviz", def.useGraphviz).toBool();
+
+	FixedConNum = settings->value("FixedConNum", def.FixedConNum).toInt();
+	IncrementalConNum = settings->value("IncrementalConNum", def.IncrementalConNum).toInt();
+	PercentageConNumFrom = settings->value("PercentageConNumFrom", def.PercentageConNumFrom).toInt();
+	PercentageConNumTo = settings->value("PercentageConNumTo", def.PercentageConNumTo).toInt();
+	maxTopoSize = settings->value("maxTopoSize", def.maxTopoSize).toInt();
+	algoTime = settings->value("algoTime", def.algoTime).toInt();
+	FixedCon = settings->value("FixedCon", def.FixedCon).toBool();
+	IncrementalCon = settings->value("IncrementalCon", def.IncrementalCon).toBool();
+	PercentageCon = settings->value("PercentageCon", def.PercentageCon).toBool();
 }
 
 void ControllerPlacementSettings::saveSettings(QSettings* const settings)
@@ -66,6 +83,8 @@ void ControllerPlacementSettings::saveSettings(QSettings* const settings)
 	settings->setValue("outFileName", outFileName);
 	settings->setValue("pathToGraphviz", pathToGraphviz);
 	settings->setValue("pathToImgFolder", pathToImgFolder);
+	settings->setValue("useGraphviz", useGraphviz);
+
 	settings->setValue("Lmax", Lmax);
 	settings->setValue("CPerfomance", CPerfomance);
 	settings->setValue("SPerfomance", SPerfomance);
@@ -74,14 +93,20 @@ void ControllerPlacementSettings::saveSettings(QSettings* const settings)
 	settings->setValue("SCTF_a", SCTF_a);
 	settings->setValue("SCTF_b", SCTF_b);
 	settings->setValue("syncTime", syncTime);
-	settings->setValue("algoTime", algoTime);
-	settings->setValue("maxTopoSize", maxTopoSize);
-	settings->setValue("iterations", iterations);
 	settings->setValue("FixedCP", FixedCP);
 	settings->setValue("FixedSP", FixedSP);
 	settings->setValue("FixedCC", FixedCC);
 	settings->setValue("FixedSCC", FixedSCC);
-	settings->setValue("UsingHops", UsingHops);
 	settings->setValue("constST", constST);
-	settings->setValue("useGraphviz", useGraphviz);
+	settings->setValue("HopsDepSCC", HopsDepSCC);
+
+	settings->setValue("maxTopoSize", maxTopoSize);
+	settings->setValue("algoTime", algoTime);
+	settings->setValue("PercentageCon", PercentageCon);
+	settings->setValue("IncrementalCon", IncrementalCon);
+	settings->setValue("FixedCon", FixedCon);
+	settings->setValue("PercentageConNumTo", PercentageConNumTo);
+	settings->setValue("PercentageConNumFrom", PercentageConNumFrom);
+	settings->setValue("IncrementalConNum", IncrementalConNum);
+	settings->setValue("FixedConNum", FixedConNum);
 }

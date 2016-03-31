@@ -4,7 +4,25 @@
 
 CPPSolution EnumerationAlgorithm::solveCPP()
 {
-	for (int conNum = 2; conNum<=nodesNumber; conNum++)
+	int from,to;
+	if (settings->FixedCon)
+	{
+		if (settings->FixedConNum > nodesNumber)
+			from=to=nodesNumber;
+		else
+			from=to=settings->FixedConNum;
+	}
+	else if(settings->IncrementalCon)
+	{
+		from=settings->IncrementalConNum;
+		to = nodesNumber;
+	}
+	else
+	{
+		from=nodesNumber*settings->PercentageConNumFrom/100;
+		to=nodesNumber*settings->PercentageConNumTo/100;
+	}
+	for (int conNum = from; conNum<=to; conNum++)
 	//итерация по всевозможным количествам контроллеров
 	{
 		totalNumberOfIterations = CisNpoK(nodesNumber, conNum);
@@ -28,7 +46,7 @@ CPPSolution EnumerationAlgorithm::solveCPP()
 					for (int swFaultNumber=nodesNumber-1; swFaultNumber>=-1; swFaultNumber--)
 					{
 						//итерация по всевозможным отказам комутаторов
-						ensureExp(!toLongToWait, "топология пропущена пользователем");
+						ensureExp(!toLongToWait, "время работы топологии слишком большое");
 						if (*pStatus==NOTRUNNING)
 							throw StopProgram();
 
@@ -42,13 +60,13 @@ CPPSolution EnumerationAlgorithm::solveCPP()
 			}
 			catch(Exceptions ex)
 			{
-				ensureExp(!toLongToWait, "топология пропущена пользователем");
+				ensureExp(!toLongToWait, "время работы топологии слишком большое");
 				if (nextPlacement())
 					continue;
 				else
 					break;
 			}
-			ensureExp(!toLongToWait, "топология пропущена пользователем");
+			ensureExp(!toLongToWait, "время работы топологии слишком большое");
 			if (nextPlacement())
 				continue;
 			else
@@ -202,8 +220,6 @@ bool ControllerPlacementAlgorothm::existDistributionForCur(int failController, i
 	//начальное распределение
 	for (int i=0;i<nodesNumber;i++)
 	{
-		if (i==failSwitch)
-			continue;
 		for (int con=0;con<conNum;con++)
 		{
 			if (curSolution.controllerPlacement[con]==i
@@ -290,7 +306,7 @@ void ControllerPlacementAlgorothm::checkIfCurIsBest()
 	int synTime = computeSynTimeForCur(-1, network->getShortestMatrix());
 	for (int i=0;i<nodesNumber;i++)
 	{
-		ensureExp(!toLongToWait,"топология пропущена пользователем");
+		ensureExp(!toLongToWait,"время работы топологии слишком большое");
 		for (int j=i;j<nodesNumber;j++)
 		{
 			nFlows++;
@@ -315,13 +331,13 @@ void ControllerPlacementAlgorothm::checkIfCurIsBest()
 	curSolution.avgLayency=avgLat/nFlows;
 
 
-	if (curSolution.controllerPlacement.size()==3)
-		if(curSolution.controllerPlacement[0]==2&&curSolution.controllerPlacement[1]==4&&curSolution.controllerPlacement[2]==7
-		   &&curSolution.masterControllersDistribution[1]==2&&curSolution.masterControllersDistribution[3]==1
-		   &&curSolution.masterControllersDistribution[4]==1&&curSolution.masterControllersDistribution[5]==1)
-	{
-		cout<<1<<endl;
-	}
+//	if (curSolution.controllerPlacement.size()==3)
+//		if(curSolution.controllerPlacement[0]==2&&curSolution.controllerPlacement[1]==4&&curSolution.controllerPlacement[2]==7
+//		   &&curSolution.masterControllersDistribution[1]==2&&curSolution.masterControllersDistribution[3]==1
+//		   &&curSolution.masterControllersDistribution[4]==1&&curSolution.masterControllersDistribution[5]==1)
+//	{
+//		cout<<1<<endl;
+//	}
 
 	if (bestSolution.totalCost<0 || bestSolution.totalCost>curSolution.totalCost || (bestSolution.totalCost==curSolution.totalCost && bestSolution.avgLayency>curSolution.avgLayency))
 	{
@@ -342,15 +358,19 @@ void EnumerationAlgorithm::timeOut()
 		return;
 	}
 	int a = totalNumberOfIterations/iteration*analyseTime/60;
-	if (a>90)
+	if (settings->algoTime==0)
 	{
-//		QMessageBox mb;
-//		mb.setText(QString("предполагаемое время работы программы %1 минут").arg(a));
-//		mb.setInformativeText("Желаете всё равно продолжить?");
-//		mb.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-//		int ret = mb.exec();
-//		if(ret==QMessageBox::Cancel)
+		QMessageBox mb;
+		mb.setText(QString("предполагаемое время работы программы %1 минут").arg(a));
+		mb.setInformativeText("Желаете всё равно продолжить?");
+		mb.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+		int ret = mb.exec();
+		if(ret==QMessageBox::Cancel)
 			toLongToWait=true;
+	}
+	else if (a>settings->algoTime)
+	{
+		toLongToWait=true;
 	}
 }
 

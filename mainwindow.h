@@ -48,13 +48,21 @@ private slots:
 	void ControllerPerfomanceCheckBox_clicked(bool checked);
 	void SwitchPerfomanceCheckBox_clicked(bool checked);
 	void ControllerCostCheckBox_clicked(bool checked);
-	void ConnectionCostCheckBox_clicked(bool checked);
-	void HopsCheckBox_clicked(bool checked);
+	void FixedConCostRB_clicked(bool checked);
+	void HopsDepConCostRB_clicked(bool checked);
+	void LatDepConCostRB_clicked(bool checked);
 	void LinearRB_clicked();
 	void constRB_clicked();
+
 	void topoSizeSB_valueChanged(int arg1);
-	void iterationsSB_valueChanged(int arg1);
 	void algoTimeSB_valueChanged(int arg1);
+	void fixedConNumSB_valueChanged(int arg1);
+	void incrementalConNumSB_valueChanged(int arg1);
+	void TopoSizeDependentConNumFromSB_valueChanged(int arg1);
+	void TopoSizeDependentConNumToSB_valueChanged(int arg1);
+	void fixedConSB_clicked();
+	void incrementalConSB_clicked();
+	void TopoSizeDependentConSB_clicked();
 
 public slots:
 	void toLog(const QString& text);	///вывод сообщения в лог

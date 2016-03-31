@@ -126,6 +126,8 @@ void NetworkWithAlgorithms::biConSearchDFS(int curNode, int parent, int &time, Q
 NetworkWithAlgorithms::NetworkWithAlgorithms(const QVector<NODE>* nodes, const QVector<EDGE>* edges, const ControllerPlacementSettings* set, int FixedConnectionCost)
 	:Network(nodes, edges), settings(set)
 {
+	ensureExp(nodesNumber<=set->maxTopoSize, "Сеть слишком большая");
+
 	//создание connectionCostMatrix
 	connectionCostMatrix.resize(nodesNumber);
 	for (int i=0;i<nodesNumber;i++)
@@ -140,7 +142,7 @@ NetworkWithAlgorithms::NetworkWithAlgorithms(const QVector<NODE>* nodes, const Q
 			}
 			int cost=0;
 			int last = 0;
-			if (settings->UsingHops)
+			if (!settings->FixedSCC)
 			{
 				for (int k=1;k<pathMatrix[i][j].size();k++)
 				{
