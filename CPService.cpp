@@ -1,4 +1,5 @@
 #include "CPService.h"
+#include <QTextStream>
 
 ControllerPlacementService::ControllerPlacementService()
 {
@@ -38,8 +39,58 @@ void ControllerPlacementService::saveNetworkSolution(int i)
 	solvedTopoList[i].solution.avgLayency=solution.avgLayency;
 	solvedTopoList[i].solution.controllerPlacement=solution.controllerPlacement;
 	solvedTopoList[i].solution.masterControllersDistribution=solution.masterControllersDistribution;
-//	solvedTopoList[i].solution.reserveControllersDistribution=solution.reserveControllersDistribution;
 	solvedTopoList[i].solution.totalCost=solution.totalCost;
+
+	QFile logFile(CPSettings->outFileName);
+	if (!logFile.open(QIODevice::Append | QIODevice::Text))
+	{
+		toLog("<font color=\"red\">/nНевозможно открыть файл для записи/n</font>!");
+		return;
+	}
+	QTextStream stream(&logFile);
+	stream	<< inFilesList[i].right(inFilesList[i].size() - inFilesList[i].lastIndexOf("/") - 1)<<";"
+		<< network->getTopoSize()<<";"
+		<< network->getEdges()->size()<<";"
+		<< ";;"
+		<< ALGORITHMS[CPSettings->algorithm]<<";"
+		<< CPSettings->Lmax<<";";
+
+	if (CPSettings->FixedSCC)
+		stream<<"fixed ("<<CPSettings->SCCost<<");";
+	else if (CPSettings->HopsDepSCC)
+		stream<<"hopsDep ("<<CPSettings->SCCost<<");";
+	else if (CPSettings->LatDepSCC)
+		stream<<"LatDep ("<<CPSettings->SCCost<<");";
+
+	if (CPSettings->constST)
+		stream<<"const syn time ("<<CPSettings->syncTime<<");";
+	else
+		stream<<"Linear ("<<CPSettings->SCTF_a<<"*x+"<<CPSettings->SCTF_b<<");"<<endl;
+
+
+	for (int i=0;i<solution.controllerPlacement.size();i++)
+	{
+		stream	<<";;;"<< solution.controllerPlacement[i]<<";";
+		bool first = true;
+		for (int j=0;j<solution.masterControllersDistribution.size();j++)
+		{
+			if (solution.masterControllersDistribution[j]==i)
+			{
+				if (first)
+				{
+					first=false;
+					stream	<<j;
+				}
+				else
+				{
+					stream	<<"  "<<j;
+				}
+			}
+		}
+		stream<<";;;;"<<endl;
+	}
+	logFile.close();
+
 }
 
 //=====================================================================
@@ -53,6 +104,13 @@ void ControllerPlacementService::startButtonPressed()
 	{
 		int doneTopos = 0;
 		QString topoTag;
+
+		QFile logFile(CPSettings->outFileName);
+		ensureExp(logFile.open(QIODevice::WriteOnly | QIODevice::Text), "Невозможно открыть лог файл");
+		QTextStream stream(&logFile);
+		stream<<"Topo name;Nodes number;Edges number;Controller placement;Switch distribution;Algorithm;Lmax;Cost metric;Latency metric"<<endl;
+		logFile.close();
+
 
 		if(CPSettings->useGraphviz)
 		{
@@ -112,9 +170,14 @@ void ControllerPlacementService::startButtonPressed()
 		emit processingTopo(0,0,0,QString("Прервано пользователем."));
 		programFinnished();
 	}
+	catch(Exceptions ex)
+	{
+		toLog(ex.getText());
+		programFinnished();
+	}
 	catch(...)
 	{
-		toLog("lol cats");
+		toLog("lol cats!");
 		programFinnished();
 	}
 

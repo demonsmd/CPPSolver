@@ -58,4 +58,27 @@ private slots:
 	void timeOut();
 };
 
+//class GreedyAlgorithm: public ControllerPlacementAlgorothm
+//{
+//	Q_OBJECT
+//public:
+//	GreedyAlgorithm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus)
+//		:ControllerPlacementAlgorothm(net, set, pStatus), analyseTime(30)
+//	{
+//		connect(&timer, SIGNAL(timeout()), this, SLOT(timeOut()));
+//	}
+
+//	CPPSolution solveCPP();
+
+//private:
+//	unsigned long int totalNumberOfIterations;
+//	unsigned long int iteration;
+//	bool nextPlacement();
+//	QTimer timer;
+//	int analyseTime;
+
+//private slots:
+//	void timeOut();
+//};
+
 #endif // CONTROLLERPLACEMENTALGOROTHM_H

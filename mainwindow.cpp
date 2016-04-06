@@ -426,7 +426,7 @@ void MainWindow::fixedTimeSB_valueChanged(int arg1)
 
 void MainWindow::bSpinBox_valueChanged(int arg1)
 {
-	CPSettings->SCTF_a=arg1;
+	CPSettings->SCTF_b=arg1;
 }
 
 void MainWindow::aSpinBox_valueChanged(int arg1)
