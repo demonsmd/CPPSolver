@@ -142,7 +142,7 @@ NetworkWithAlgorithms::NetworkWithAlgorithms(const QVector<NODE>* nodes, const Q
 			}
 			int cost=0;
 			int last = 0;
-			if (!settings->FixedSCC)
+			if (settings->HopsDepSCC)
 			{
 				for (int k=1;k<pathMatrix[i][j].size();k++)
 				{
@@ -161,8 +161,16 @@ NetworkWithAlgorithms::NetworkWithAlgorithms(const QVector<NODE>* nodes, const Q
 					last++;
 				}
 			}
-			else
+			else if (settings->FixedSCC)
+			{
 				cost=FixedConnectionCost;
+			}
+			else
+			{
+				if (settings->SCCost==0)
+					cost=FixedConnectionCost;
+				cost=shortestMatrix[i][j]/settings->SCCost;
+			}
 			connectionCostMatrix[i][j]=cost;
 		}
 

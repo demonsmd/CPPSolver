@@ -222,9 +222,10 @@ void MainWindow::loadMWSettings()
 		showMaximized();
 
 	MWSettings->beginGroup("CPService/");
-	CPSettings = CPService->loadSettings(MWSettings);
 	for (int i=0;i<CPService->ALGORITHMS.size();i++)
 		ui->AlgorithmChooseComboBox->addItem(CPService->ALGORITHMS[i]);
+
+	CPSettings = CPService->loadSettings(MWSettings);
 	MWSettings->endGroup();
 }
 
@@ -349,7 +350,8 @@ void MainWindow::on_CPPSettingsPB_clicked()
 
 void MainWindow::on_AlgorithmChooseComboBox_currentIndexChanged(int index)
 {
-	CPSettings->algorithm=index;
+	if (CPSettings)
+		CPSettings->algorithm=index;
 }
 
 void MainWindow::on_graphvizCB_clicked(bool checked)

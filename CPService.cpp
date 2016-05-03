@@ -142,7 +142,7 @@ void ControllerPlacementService::startButtonPressed()
 				if (CPSettings->algorithm==0)
 					algorithm = new EnumerationAlgorithm(network, CPSettings, &PStatus);
 				else if (CPSettings->algorithm==1)
-					ensureExp(false, "Жадный алгоритм ещё не написан");
+					algorithm = new GreedyAlgorithm(network, CPSettings, &PStatus);
 				connect(algorithm, SIGNAL(curTopoProcess(int, int, int)),
 					this, SLOT(curTopoProcess(int, int, int)));
 				solution = algorithm->solveCPP();

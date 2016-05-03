@@ -54,6 +54,7 @@ struct CPPSolution
 //	QVector<int> reserveControllersDistribution;
 	int totalCost;
 	int avgLayency;
+	int WCLatency;
 };
 
 struct SolvedTopo

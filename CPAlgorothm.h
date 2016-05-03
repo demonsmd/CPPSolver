@@ -12,8 +12,7 @@ class ControllerPlacementAlgorothm: public QObject
 {
 	Q_OBJECT
 public:
-	ControllerPlacementAlgorothm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus)
-		:network(net), settings(set), nodesNumber(net->getTopoSize()), toLongToWait(false), pStatus(pStatus){}
+	ControllerPlacementAlgorothm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus);
 
 	virtual CPPSolution solveCPP() = 0;
 	virtual ~ControllerPlacementAlgorothm(){}
@@ -26,10 +25,15 @@ protected:
 	int nodesNumber;
 	bool toLongToWait;
 	const programStatus *pStatus;
-	bool curConstraintsVerification(int failSwitch, int failController, const QVector<QVector<int> >& newShortestMatrix, int syncTime= -1);
-	virtual bool existDistributionForCur(int failController, int failSwitch);
+	int minConNum;
+	int maxConNum;
+
+
+	bool curConstraintsVerification(int failSwitch, int failController, const QVector<QVector<int> >& newShortestMatrix, int syncTime=0);
 	virtual void checkIfCurIsBest();
 	int computeSynTimeForCur(int failController, const QVector<QVector<int> >* newShortestMatrix);
+	int computeWCLTime(int failController, int failSwitch, const QVector<QVector<int> >* newShortestMatrix, int syncTime);
+	void computeCostAndLatForCur();
 
 signals:
 	void curTopoProcess(int done, int from, int conNumber);
@@ -50,6 +54,7 @@ public:
 private:
 	unsigned long int totalNumberOfIterations;
 	unsigned long int iteration;
+	bool existDistributionForCur(int failController, int failSwitch);
 	bool nextPlacement();
 	QTimer timer;
 	int analyseTime;
@@ -58,27 +63,37 @@ private slots:
 	void timeOut();
 };
 
-//class GreedyAlgorithm: public ControllerPlacementAlgorothm
-//{
-//	Q_OBJECT
-//public:
-//	GreedyAlgorithm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus)
-//		:ControllerPlacementAlgorothm(net, set, pStatus), analyseTime(30)
-//	{
-//		connect(&timer, SIGNAL(timeout()), this, SLOT(timeOut()));
-//	}
 
-//	CPPSolution solveCPP();
+//=================== GREEDY =============================
 
-//private:
-//	unsigned long int totalNumberOfIterations;
-//	unsigned long int iteration;
-//	bool nextPlacement();
-//	QTimer timer;
-//	int analyseTime;
+class GreedyAlgorithm: public ControllerPlacementAlgorothm
+{
+	Q_OBJECT
+public:
+	GreedyAlgorithm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus)
+		:ControllerPlacementAlgorothm(net, set, pStatus)
+	{
+		connect(&timer, SIGNAL(timeout()), this, SLOT(timeOut()));
+	}
 
-//private slots:
-//	void timeOut();
-//};
+	CPPSolution solveCPP();
+
+private:
+	QTimer timer;
+	QSet<QSet<int> >seenPlacements;
+	int maxLmax;
+
+
+	void checkChildSolution(CPPSolution* parentSol);	///recursively calls itself if curent solution is better than parent
+	bool parentComparation(CPPSolution* parentSol);	///compare cur solution with parent. return true if cur is not worse than parent
+	void solveNeighbors();
+	void placeInTopoCenter(int conNum);
+	void initialDistribution(int failSwich, int failCon, const QVector<QVector<int> > &newShortestMatrix);
+	void controllerLoadCheck(int failSwich, int failCon, const QVector<QVector<int> > &newShortestMatrix);
+	void connectionLatencyCheck(int failSwich, int failCon, const QVector<QVector<int> > &newShortestMatrix);
+
+private slots:
+	void timeOut();
+};
 
 #endif // CONTROLLERPLACEMENTALGOROTHM_H
