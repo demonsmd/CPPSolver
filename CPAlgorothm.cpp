@@ -90,6 +90,7 @@ CPPSolution EnumerationAlgorithm::solveCPP()
 		curSolution.controllerPlacement.resize(conNum);
 		for (int i=0; i<conNum; i++)
 			curSolution.controllerPlacement[i]=i;
+		curSolution.WCLatency=0;
 
 		timer.setSingleShot(true);
 		timer.start(analyseTime*1000);
@@ -138,7 +139,6 @@ CPPSolution EnumerationAlgorithm::solveCPP()
 }
 
 bool ControllerPlacementAlgorothm::curConstraintsVerification(int failSwitch, int failController, const QVector<QVector<int> >& newShortestMatrix, int syncTime)
-//failController не используется так как он никем не управляет
 {
 	int conNum = curSolution.controllerPlacement.size();
 
@@ -158,8 +158,11 @@ bool ControllerPlacementAlgorothm::curConstraintsVerification(int failSwitch, in
 		}
 	}
 	//вычисление междоменной и  внутридоменной задержки и проверка задержки
-	if (computeWCLTime(failController, failSwitch, &newShortestMatrix,syncTime)>settings->Lmax)
+	int WCL = computeWCLTime(failController, failSwitch, &newShortestMatrix,syncTime);
+	if (WCL>settings->Lmax)
 		return false;
+	if (WCL>curSolution.WCLatency)
+		curSolution.WCLatency=WCL;
 	return true;
 }
 
@@ -350,7 +353,7 @@ void EnumerationAlgorithm::timeOut()
 		return;
 	if (iteration==0)
 	{
-//		toLongToWait=true;
+		toLongToWait=true;
 		return;
 	}
 	int a = totalNumberOfIterations/iteration*analyseTime/60;
@@ -366,7 +369,7 @@ void EnumerationAlgorithm::timeOut()
 	}
 	else if (a>settings->algoTime)
 	{
-//		toLongToWait=true;
+		toLongToWait=true;
 	}
 }
 
@@ -403,12 +406,15 @@ CPPSolution GreedyAlgorithm::solveCPP()
 	for (int conNum = minConNum; conNum<=maxConNum; conNum++)
 	//итерация по всевозможным количествам контроллеров
 	{
+		emit curTopoProcess(0, totalPlacementNumber, conNum);
 		try
 		{
 			timer.setSingleShot(true);
 			timer.start(settings->algoTime*60*1000);
 			seenPlacements.clear();
 			bestSolution.totalCost=-1;
+			curPlacementNumber=0;
+			totalPlacementNumber = CisNpoK(nodesNumber, conNum);
 
 			placeInTopoCenter(conNum);
 			checkChildSolution(NULL);
@@ -450,12 +456,17 @@ void GreedyAlgorithm::placeInTopoCenter(int conNum)
 void GreedyAlgorithm::checkChildSolution(CPPSolution* parentSol)
 {
 	int conNum = curSolution.controllerPlacement.size();
+	emit curTopoProcess(curPlacementNumber++, totalPlacementNumber, conNum);
 
 	for (int failController=conNum-1; failController>=-1;failController--)
 	{
 		//итерация по всевозможным отказам контроллера (-1 - нет отказов контроллера)
 		for (int failSwitch=nodesNumber-1; failSwitch>=-1; failSwitch--)
 		{
+			QCoreApplication::processEvents();
+			ensureExp(!toLongToWait, "время работы топологии слишком большое");
+			if (*pStatus==NOTRUNNING)
+				throw StopProgram();
 			//==================== сценарий отказа зафиксирован ====================
 			//======= изменение внутреннего представления топологии после отказа =======
 			ensureExp(!toLongToWait, "время работы топологии слишком большое");

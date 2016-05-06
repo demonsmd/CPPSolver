@@ -4,10 +4,11 @@ CPPSolver is a program, that solves Controller Placement Problem in SDN networks
 
 now works:
  - Enumeration algorithm
+ - Greedy alogithm
  - Solution visualisator
 
 Requirements:
-- qt5 libraries
+- qt5.6 libraries
 
 input:
 topos are loaded from .graphml files

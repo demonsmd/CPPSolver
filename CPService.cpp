@@ -65,7 +65,8 @@ void ControllerPlacementService::saveNetworkSolution(int i)
 	if (CPSettings->constST)
 		stream<<"const syn time ("<<CPSettings->syncTime<<");";
 	else
-		stream<<"Linear ("<<CPSettings->SCTF_a<<"*x+"<<CPSettings->SCTF_b<<");"<<endl;
+		stream<<"Linear ("<<CPSettings->SCTF_a<<"*x+"<<CPSettings->SCTF_b<<");";
+	stream<<solution.WCLatency<<";"<<solution.avgLayency<<";"<<solution.totalCost<<";"<<endl;
 
 
 	for (int i=0;i<solution.controllerPlacement.size();i++)
@@ -108,7 +109,7 @@ void ControllerPlacementService::startButtonPressed()
 		QFile logFile(CPSettings->outFileName);
 		ensureExp(logFile.open(QIODevice::WriteOnly | QIODevice::Text), "Невозможно открыть лог файл");
 		QTextStream stream(&logFile);
-		stream<<"Topo name;Nodes number;Edges number;Controller placement;Switch distribution;Algorithm;Lmax;Cost metric;Latency metric"<<endl;
+		stream<<"Topo name;Nodes number;Edges number;Controller placement;Switch distribution;Algorithm;Lmax;Cost metric;Latency metric;WCL;AVG_LAT;COST"<<endl;
 		logFile.close();
 
 

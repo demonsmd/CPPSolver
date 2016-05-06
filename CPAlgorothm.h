@@ -83,6 +83,10 @@ private:
 	QSet<QSet<int> >seenPlacements;
 	int maxLmax;
 
+	//statistics
+	int curPlacementNumber;
+	int totalPlacementNumber;
+
 
 	void checkChildSolution(CPPSolution* parentSol);	///recursively calls itself if curent solution is better than parent
 	bool parentComparation(CPPSolution* parentSol);	///compare cur solution with parent. return true if cur is not worse than parent
