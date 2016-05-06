@@ -82,7 +82,7 @@ CPPSolution EnumerationAlgorithm::solveCPP()
 	for (int conNum = minConNum; conNum<=maxConNum; conNum++)
 	//итерация по всевозможным количествам контроллеров
 	{
-		totalNumberOfIterations = CisNpoK(nodesNumber, conNum);
+		bestSolution.totalNumberOfIterations = totalNumberOfIterations = CisNpoK(nodesNumber, conNum);
 		iteration = 0;
 		emit curTopoProcess(0, totalNumberOfIterations, conNum);
 
@@ -159,7 +159,7 @@ bool ControllerPlacementAlgorothm::curConstraintsVerification(int failSwitch, in
 	}
 	//вычисление междоменной и  внутридоменной задержки и проверка задержки
 	int WCL = computeWCLTime(failController, failSwitch, &newShortestMatrix,syncTime);
-	if (WCL>settings->Lmax)
+	if (WCL>settings->totalLmax)
 		return false;
 	if (WCL>curSolution.WCLatency)
 		curSolution.WCLatency=WCL;
@@ -344,6 +344,8 @@ void ControllerPlacementAlgorothm::checkIfCurIsBest()
 		bestSolution.avgLayency=curSolution.avgLayency;
 		bestSolution.masterControllersDistribution=curSolution.masterControllersDistribution;
 		bestSolution.totalCost=curSolution.totalCost;
+		bestSolution.WCLatency = curSolution.WCLatency;
+		bestSolution.FoundIteration = iteration;
 	}
 }
 
@@ -406,15 +408,16 @@ CPPSolution GreedyAlgorithm::solveCPP()
 	for (int conNum = minConNum; conNum<=maxConNum; conNum++)
 	//итерация по всевозможным количествам контроллеров
 	{
-		emit curTopoProcess(0, totalPlacementNumber, conNum);
+		bestSolution.totalNumberOfIterations = totalNumberOfIterations = CisNpoK(nodesNumber, conNum);
+		emit curTopoProcess(0, totalNumberOfIterations, conNum);
 		try
 		{
 			timer.setSingleShot(true);
 			timer.start(settings->algoTime*60*1000);
 			seenPlacements.clear();
 			bestSolution.totalCost=-1;
-			curPlacementNumber=0;
-			totalPlacementNumber = CisNpoK(nodesNumber, conNum);
+			iteration=0;
+			curSolution.WCLatency=0;
 
 			placeInTopoCenter(conNum);
 			checkChildSolution(NULL);
@@ -456,7 +459,7 @@ void GreedyAlgorithm::placeInTopoCenter(int conNum)
 void GreedyAlgorithm::checkChildSolution(CPPSolution* parentSol)
 {
 	int conNum = curSolution.controllerPlacement.size();
-	emit curTopoProcess(curPlacementNumber++, totalPlacementNumber, conNum);
+	emit curTopoProcess(iteration++, totalNumberOfIterations, conNum);
 
 	for (int failController=conNum-1; failController>=-1;failController--)
 	{
@@ -493,7 +496,7 @@ void GreedyAlgorithm::checkChildSolution(CPPSolution* parentSol)
 	//просмотрели все сценарии отказа
 	if (parentComparation(parentSol))
 	{
-		if (curSolution.WCLatency<=settings->Lmax)
+		if (curSolution.WCLatency<=settings->totalLmax)
 			checkIfCurIsBest();
 		solveNeighbors();
 	}
@@ -645,7 +648,7 @@ void GreedyAlgorithm::connectionLatencyCheck(int failSwich, int failCon, const Q
 
 bool GreedyAlgorithm::parentComparation(CPPSolution* parentSol)
 {
-	if (curSolution.WCLatency<=settings->Lmax)
+	if (curSolution.WCLatency<=settings->totalLmax)
 	{
 		//получили решение!
 		computeCostAndLatForCur();

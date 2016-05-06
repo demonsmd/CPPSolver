@@ -27,10 +27,18 @@
       </widget>
      </item>
      <item row="1" column="3">
-      <widget class="QSpinBox" name="algoTimeSB"/>
+      <widget class="QSpinBox" name="algoTimeSB">
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+      </widget>
      </item>
      <item row="0" column="3">
-      <widget class="QSpinBox" name="topoSizeSB"/>
+      <widget class="QSpinBox" name="topoSizeSB">
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+      </widget>
      </item>
      <item row="3" column="2" colspan="2">
       <widget class="QPushButton" name="acept">

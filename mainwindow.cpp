@@ -96,6 +96,8 @@ void MainWindow::initConnections()
 		this, SLOT(fixedTimeSB_valueChanged(int)));
 	connect(CPPParametersUi->ControllerPerfomanceCheckBox, SIGNAL(clicked(bool)),
 		this, SLOT(ControllerPerfomanceCheckBox_clicked(bool)));
+	connect(CPPParametersUi->LmaxCB, SIGNAL(clicked(bool)),
+		this, SLOT(LmaxCheckBox_clicked(bool)));
 	connect(CPPParametersUi->SwitchPerfomanceCheckBox, SIGNAL(clicked(bool)),
 		this, SLOT(SwitchPerfomanceCheckBox_clicked(bool)));
 	connect(CPPParametersUi->ControllerCostCheckBox, SIGNAL(clicked(bool)),
@@ -172,6 +174,7 @@ void MainWindow::applySettings()
 		CPPParametersUi->FixedConCostRB->setChecked(CPSettings->FixedSCC);
 		CPPParametersUi->ControllerCostCheckBox->setChecked(CPSettings->FixedCC);
 		CPPParametersUi->ControllerPerfomanceCheckBox->setChecked(CPSettings->FixedCP);
+		CPPParametersUi->LmaxCB->setChecked(CPSettings->LmaxMultiplier);
 		CPPParametersUi->SwitchPerfomanceCheckBox->setChecked(CPSettings->FixedSP);
 		CPPParametersUi->HopsDepConCostRB->setChecked(CPSettings->HopsDepSCC);
 		CPPParametersUi->LatDepConCostRB->setChecked(CPSettings->LatDepSCC);
@@ -439,6 +442,11 @@ void MainWindow::aSpinBox_valueChanged(int arg1)
 void MainWindow::ControllerPerfomanceCheckBox_clicked(bool checked)
 {
 	CPSettings->FixedCP=checked;
+}
+
+void MainWindow::LmaxCheckBox_clicked(bool checked)
+{
+	CPSettings->LmaxMultiplier=checked;
 }
 
 void MainWindow::SwitchPerfomanceCheckBox_clicked(bool checked)

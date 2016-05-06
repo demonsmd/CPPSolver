@@ -46,6 +46,7 @@ private slots:
 	void bSpinBox_valueChanged(int arg1);
 	void aSpinBox_valueChanged(int arg1);
 	void ControllerPerfomanceCheckBox_clicked(bool checked);
+	void LmaxCheckBox_clicked(bool checked);
 	void SwitchPerfomanceCheckBox_clicked(bool checked);
 	void ControllerCostCheckBox_clicked(bool checked);
 	void FixedConCostRB_clicked(bool checked);

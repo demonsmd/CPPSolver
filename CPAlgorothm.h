@@ -28,6 +28,10 @@ protected:
 	int minConNum;
 	int maxConNum;
 
+	//statistics
+	unsigned long int totalNumberOfIterations;
+	unsigned long int iteration;
+
 
 	bool curConstraintsVerification(int failSwitch, int failController, const QVector<QVector<int> >& newShortestMatrix, int syncTime=0);
 	virtual void checkIfCurIsBest();
@@ -38,6 +42,7 @@ protected:
 signals:
 	void curTopoProcess(int done, int from, int conNumber);
 };
+//====================================
 
 class EnumerationAlgorithm: public ControllerPlacementAlgorothm
 {
@@ -52,8 +57,6 @@ public:
 	CPPSolution solveCPP();
 
 private:
-	unsigned long int totalNumberOfIterations;
-	unsigned long int iteration;
 	bool existDistributionForCur(int failController, int failSwitch);
 	bool nextPlacement();
 	QTimer timer;
@@ -85,7 +88,6 @@ private:
 
 	//statistics
 	int curPlacementNumber;
-	int totalPlacementNumber;
 
 
 	void checkChildSolution(CPPSolution* parentSol);	///recursively calls itself if curent solution is better than parent

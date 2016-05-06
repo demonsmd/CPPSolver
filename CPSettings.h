@@ -27,6 +27,7 @@ public:
 	int SCTF_b;
 	int syncTime;
 	bool FixedCP;
+	bool LmaxMultiplier;
 	bool FixedSP;
 	bool FixedCC;
 	bool FixedSCC;
@@ -44,6 +45,8 @@ public:
 	bool FixedCon;
 	bool IncrementalCon;
 	bool PercentageCon;
+
+	int totalLmax;
 };
 
 class DefaultCPSettings
@@ -66,6 +69,7 @@ public:
 	int SCTF_b;
 	int syncTime;
 	bool FixedCP;
+	bool LmaxMultiplier;
 	bool FixedSP;
 	bool FixedCC;
 	bool FixedSCC;

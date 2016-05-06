@@ -16,5 +16,6 @@ topos are loaded from .graphml files
 output:
 solution goes to outFile.csv
 solved topos visualises by graphviz
+statistics goes to outFile.csv
 
 It is crossplatform, but was tested only on Win10.

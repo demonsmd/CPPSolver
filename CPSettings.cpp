@@ -23,6 +23,7 @@ DefaultCPSettings::DefaultCPSettings()
 	FixedSP = true;
 	FixedCC = true;
 	FixedSCC = false;
+	LmaxMultiplier = true;
 	HopsDepSCC = false;
 	LatDepSCC = true;
 	constST = false;
@@ -58,6 +59,7 @@ void ControllerPlacementSettings::loadSettings(QSettings* const settings)
 	SCTF_b = settings->value("SCTF_b", def.SCTF_b).toInt();
 	syncTime = settings->value("syncTime", def.syncTime).toInt();
 	FixedCP = settings->value("FixedCP", def.FixedCP).toBool();
+	LmaxMultiplier = settings->value("LmaxMultiplier",def.LmaxMultiplier).toBool();
 	FixedSP = settings->value("FixedSP", def.FixedSP).toBool();
 	FixedCC = settings->value("FixedCC", def.FixedCC).toBool();
 	FixedSCC = settings->value("FixedSCC", def.FixedSCC).toBool();
@@ -94,6 +96,7 @@ void ControllerPlacementSettings::saveSettings(QSettings* const settings)
 	settings->setValue("SCTF_b", SCTF_b);
 	settings->setValue("syncTime", syncTime);
 	settings->setValue("FixedCP", FixedCP);
+	settings->setValue("LmaxMultiplier", LmaxMultiplier);
 	settings->setValue("FixedSP", FixedSP);
 	settings->setValue("FixedCC", FixedCC);
 	settings->setValue("FixedSCC", FixedSCC);

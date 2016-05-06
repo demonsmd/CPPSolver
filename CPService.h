@@ -45,6 +45,7 @@ private:
 private:
 	void getInFiles();
 	void saveNetworkSolution(int i);
+	void computeLmax();				///нужно для определения действительной Lmax
 
 public slots:
 	void startButtonPressed();

@@ -1,5 +1,6 @@
 #include "CPService.h"
 #include <QTextStream>
+#include <QTime>
 
 ControllerPlacementService::ControllerPlacementService()
 {
@@ -53,7 +54,7 @@ void ControllerPlacementService::saveNetworkSolution(int i)
 		<< network->getEdges()->size()<<";"
 		<< ";;"
 		<< ALGORITHMS[CPSettings->algorithm]<<";"
-		<< CPSettings->Lmax<<";";
+		<< CPSettings->totalLmax<<";";
 
 	if (CPSettings->FixedSCC)
 		stream<<"fixed ("<<CPSettings->SCCost<<");";
@@ -66,7 +67,8 @@ void ControllerPlacementService::saveNetworkSolution(int i)
 		stream<<"const syn time ("<<CPSettings->syncTime<<");";
 	else
 		stream<<"Linear ("<<CPSettings->SCTF_a<<"*x+"<<CPSettings->SCTF_b<<");";
-	stream<<solution.WCLatency<<";"<<solution.avgLayency<<";"<<solution.totalCost<<";"<<endl;
+	stream<<solution.WCLatency<<";"<<solution.avgLayency<<";"<<solution.totalCost<<";";
+	stream<<solution.WorkTime<<";"<<solution.FoundIteration<<";"<<solution.totalNumberOfIterations<<";"<<endl;
 
 
 	for (int i=0;i<solution.controllerPlacement.size();i++)
@@ -109,7 +111,7 @@ void ControllerPlacementService::startButtonPressed()
 		QFile logFile(CPSettings->outFileName);
 		ensureExp(logFile.open(QIODevice::WriteOnly | QIODevice::Text), "Невозможно открыть лог файл");
 		QTextStream stream(&logFile);
-		stream<<"Topo name;Nodes number;Edges number;Controller placement;Switch distribution;Algorithm;Lmax;Cost metric;Latency metric;WCL;AVG_LAT;COST"<<endl;
+		stream<<"Topo name;Nodes number;Edges number;Controller placement;Switch distribution;Algorithm;Lmax;Cost metric;Latency metric;WCL;AVG_LAT;COST;Time(msec);Found_On_Iteration;Iterations"<<endl;
 		logFile.close();
 
 
@@ -140,13 +142,22 @@ void ControllerPlacementService::startButtonPressed()
 						,CPSettings ,xmlReader->getFixedConnectionCost());
 				ensureExp(network->CheckBiconnectivity(), "Сеть не является двусвязной");
 
+				computeLmax();
+
 				if (CPSettings->algorithm==0)
 					algorithm = new EnumerationAlgorithm(network, CPSettings, &PStatus);
 				else if (CPSettings->algorithm==1)
 					algorithm = new GreedyAlgorithm(network, CPSettings, &PStatus);
 				connect(algorithm, SIGNAL(curTopoProcess(int, int, int)),
 					this, SLOT(curTopoProcess(int, int, int)));
+
+				QTime timer;
+				timer.start();
 				solution = algorithm->solveCPP();
+				solution.WorkTime = timer.elapsed();
+
+				ensureExp(solution.controllerPlacement.size()>0,"Не найдено решения для данных параметров");
+
 
 				saveNetworkSolution(curTopoNum);
 
@@ -237,3 +248,17 @@ void ControllerPlacementService::getInFiles()
 	else
 		throw(Exceptions("входной файл " + CPSettings->inFileName + " не является .graphml файлом или директорией"));
 }
+
+void ControllerPlacementService::computeLmax()
+{
+	if (CPSettings->LmaxMultiplier)
+	{
+		const QVector< QVector<int> >* matr = network->getShortestMatrix();
+		int max = 0;
+		for (int i=1;i<matr->size();i++)
+			if ((*matr)[0][i]>max)
+				max = (*matr)[0][i];
+		CPSettings->totalLmax=max*CPSettings->Lmax;
+	}
+}
+
