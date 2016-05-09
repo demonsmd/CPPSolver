@@ -18,7 +18,7 @@ public:
 	QString pathToGraphviz;
 	QString pathToImgFolder;
 	int algorithm;
-	int Lmax;
+	double Lmax;
 	int CPerfomance;
 	int SPerfomance;
 	int CCost;
@@ -60,7 +60,7 @@ public:
 	QString pathToGraphviz;
 	QString pathToImgFolder;
 	int algorithm;
-	int Lmax;
+	double Lmax;
 	int CPerfomance;
 	int SPerfomance;
 	int CCost;

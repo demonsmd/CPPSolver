@@ -50,7 +50,7 @@ void ControllerPlacementSettings::loadSettings(QSettings* const settings)
 	algorithm = settings->value("algorithm", def.algorithm).toInt();
 	useGraphviz = settings->value("useGraphviz", def.useGraphviz).toBool();
 
-	Lmax = settings->value("Lmax", def.Lmax).toInt();
+	Lmax = settings->value("Lmax", def.Lmax).toDouble();
 	CPerfomance = settings->value("CPerfomance", def.CPerfomance).toInt();
 	SPerfomance = settings->value("SPerfomance", def.SPerfomance).toInt();
 	CCost = settings->value("CCost", def.CCost).toInt();

@@ -82,8 +82,8 @@ void MainWindow::initConnections()
 		this, SLOT(aSpinBox_valueChanged(int)));
 	connect(CPPParametersUi->bSpinBox, SIGNAL(valueChanged(int)),
 		this, SLOT(bSpinBox_valueChanged(int)));
-	connect(CPPParametersUi->LmaxSpinBox, SIGNAL(valueChanged(int)),
-		this, SLOT(LmaxSpinBox_valueChanged(int)));
+	connect(CPPParametersUi->LmaxSpinBox, SIGNAL(valueChanged(double)),
+		this, SLOT(LmaxSpinBox_valueChanged(double)));
 	connect(CPPParametersUi->ControllerPerfomanceSpinBox, SIGNAL(valueChanged(int)),
 		this, SLOT(ControllerPerfomanceSpinBox_valueChanged(int)));
 	connect(CPPParametersUi->SwitchPerfomanceSpinBox, SIGNAL(valueChanged(int)),
@@ -399,7 +399,7 @@ void MainWindow::on_chooseImgBP_clicked()
 	}
 }
 
-void MainWindow::LmaxSpinBox_valueChanged(int arg1)
+void MainWindow::LmaxSpinBox_valueChanged(double arg1)
 {
 	CPSettings->Lmax=arg1;
 }

@@ -58,25 +58,6 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="3" colspan="2">
-         <widget class="QSpinBox" name="LmaxSpinBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimum">
-           <number>1</number>
-          </property>
-          <property name="maximum">
-           <number>16777215</number>
-          </property>
-          <property name="value">
-           <number>1000</number>
-          </property>
-         </widget>
-        </item>
         <item row="5" column="0" colspan="5">
          <widget class="QGroupBox" name="groupBox">
           <property name="sizePolicy">
@@ -440,6 +421,16 @@
           </property>
           <property name="checked">
            <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3" colspan="2">
+         <widget class="QDoubleSpinBox" name="LmaxSpinBox">
+          <property name="maximum">
+           <double>1000000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>1.500000000000000</double>
           </property>
          </widget>
         </item>
