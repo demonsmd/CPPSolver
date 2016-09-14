@@ -37,7 +37,7 @@ private slots:
 	void on_graphvizCB_clicked(bool checked);
 	void on_chooseDotPB_clicked();
 	void on_chooseImgBP_clicked();
-	void LmaxSpinBox_valueChanged(double arg1);
+	void LmaxSpinBox_valueChanged(int arg1);
 	void ControllerPerfomanceSpinBox_valueChanged(int arg1);
 	void SwitchPerfomanceSpinBox_valueChanged(int arg1);
 	void ControllerCostSpinBox_valueChanged(int arg1);

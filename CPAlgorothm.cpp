@@ -22,10 +22,6 @@ ControllerPlacementAlgorothm::ControllerPlacementAlgorothm(const NetworkWithAlgo
 	{
 		minConNum=nodesNumber*settings->PercentageConNumFrom/100;
 		maxConNum=nodesNumber*settings->PercentageConNumTo/100;
-		if (minConNum<2)
-			minConNum=2;
-		if (maxConNum>nodesNumber)
-			maxConNum=nodesNumber;
 	}
 }
 
@@ -660,9 +656,7 @@ bool GreedyAlgorithm::parentComparation(CPPSolution* parentSol)
 			return true;
 		if (parentSol->totalCost<0)
 			return true;
-		if (parentSol->totalCost>curSolution.totalCost)
-			return true;
-		if (parentSol->totalCost==curSolution.totalCost && parentSol->avgLayency>=curSolution.avgLayency)
+		if (parentSol->totalCost>=curSolution.totalCost)
 			return true;
 		return false;
 	}

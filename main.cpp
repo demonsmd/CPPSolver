@@ -10,5 +10,4 @@ int main(int argc, char *argv[])
 
 	return a.exec();
 }
-//TODO: comandLine params
-//documentable coments
+//TODO кнопка параметры алгоритма
