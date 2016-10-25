@@ -6,27 +6,26 @@
 class Exceptions
 {
 public:
-	Exceptions(const QString& text):text(text){}
-	QString getText(){return text;}
+    Exceptions(const QString& text):text(text){}
+    QString getText(){return text;}
 
 private:
-	QString text;
+    QString text;
 };
 
 class StopProgram
 {
 public:
-	StopProgram(const QString& text = "Работа программы прервана пользователем"):text(text){}
+    StopProgram(const QString& text = "Работа программы прервана пользователем"):text(text){}
 
-	QString getText(){return text;}
+    QString getText(){return text;}
 
 private:
-	QString text;
+    QString text;
 };
 
-inline void ensureExp(bool exp, QString message)
-{
-	if (!exp) throw Exceptions(message);
+inline void ensureExp(bool exp, QString message){
+    if (!exp) throw Exceptions(message);
 }
 
 #endif // EXCEPTIONS_H

@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QMAKE_CXXFLAGS += -std=c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,7 +20,8 @@ SOURCES += main.cpp\
     CPAlgorothm.cpp \
     CPSettings.cpp \
     graphmlReader.cpp \
-    graphviz.cpp
+    graphviz.cpp \
+    topogenerator.cpp
 
 HEADERS  += mainwindow.h \
     network.h \
@@ -29,11 +31,13 @@ HEADERS  += mainwindow.h \
     CPSettings.h \
     graphmlReader.h \
     topoelements.h \
-    graphviz.h
+    graphviz.h \
+    topogenerator.h
 
 FORMS    += mainwindow.ui \
     cppparameters.ui \
-    alogorithmparametrs.ui
+    alogorithmparametrs.ui \
+    topogeneratordialog.ui
 
 DISTFILES += \
     README.md
