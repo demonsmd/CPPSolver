@@ -54,41 +54,42 @@ void topoGenerator::generateTopo(const GRAPHMLReader& topo, QString dstPath){
     int nodesNum = topo.getNodes()->size();
     int edgesNum = topo.getEdges()->size();
 
-    fout<<"<?xml version=""1.0"" encoding=""utf-8""?>"<<endl;
+    fout<<"<?xml version=\"1.0\" encoding=\"utf-8\"?>"<<endl;
     fout<<"<graphml>"<<endl;
-    fout<<"  <key attr.name=""Latitude"" attr.type=""double"" for=""node"" id=""d1"" />"<<endl;
-    fout<<"  <key attr.name=""Longitude"" attr.type=""double"" for=""node"" id=""d2"" />"<<endl;
-    fout<<"  <key attr.name=""id"" attr.type=""int"" for=""node"" id=""d3"" />"<<endl;
-    fout<<"  <key attr.name=""MaxSwitchLoad"" attr.type=""int"" for=""node"" id=""d4"" />"<<endl;
-    fout<<"  <key attr.name=""ControllerLoad"" attr.type=""int"" for=""node"" id=""d5"" />"<<endl;
-    fout<<"  <key attr.name=""cost"" attr.type=""int"" for=""node"" id=""d6"" />"<<endl;
-    fout<<"  <key attr.name=""cost"" attr.type=""int"" for=""edge"" id=""d7"" />"<<endl;
-    fout<<"  <key attr.name=""AvgSwitchLoad"" attr.type=""int"" for=""node"" id=""d8"" />"<<endl;
-    fout<<"  <graph edgedefault=""undirected"">"<<endl;
+    fout<<"  <key attr.name=\"Latitude\" attr.type=\"double\" for=\"node\" id=\"d1\" />"<<endl;
+    fout<<"  <key attr.name=\"Longitude\" attr.type=\"double\" for=\"node\" id=\"d2\" />"<<endl;
+    fout<<"  <key attr.name=\"id\" attr.type=\"int\" for=\"node\" id=\"d3\" />"<<endl;
+    fout<<"  <key attr.name=\"MaxSwitchLoad\" attr.type=\"int\" for=\"node\" id=\"d4\" />"<<endl;
+    fout<<"  <key attr.name=\"ControllerLoad\" attr.type=\"int\" for=\"node\" id=\"d5\" />"<<endl;
+    fout<<"  <key attr.name=\"cost\" attr.type=\"int\" for=\"node\" id=\"d6\" />"<<endl;
+    fout<<"  <key attr.name=\"cost\" attr.type=\"int\" for=\"edge\" id=\"d7\" />"<<endl;
+    fout<<"  <key attr.name=\"AvgSwitchLoad\" attr.type=\"int\" for=\"node\" id=\"d8\" />"<<endl;
+    fout<<"  <graph edgedefault=\"undirected\">"<<endl;
     for (int node = 0; node < nodesNum; node++){
-        fout<<"  <node id="""<<node<<""">"<<endl;
-        fout<<"    <data key=""d1"">"<<topo.getNodes()->at(node).latitude<<"</data>"<<endl;
-        fout<<"    <data key=""d2"">"<<topo.getNodes()->at(node).longitude<<"</data>"<<endl;
-        fout<<"    <data key=""d3"">"<<topo.getNodes()->at(node).id<<"</data>"<<endl;
-        fout<<"    <data key=""d4"">"<<MLG->generate()<<"</data>"<<endl;
-        fout<<"    <data key=""d5"">"<<CLG->generate()<<"</data>"<<endl;
-        fout<<"    <data key=""d6"">"<<CDCG->generate()<<"</data>"<<endl;
-        fout<<"    <data key=""d8"">"<<ALG->generate()<<"</data>"<<endl;
-        fout<<"  </node>"<<endl;
+        fout<<"    <node id=\""<<node<<"\">"<<endl;
+        fout<<"      <data key=\"d1\">"<<topo.getNodes()->at(node).latitude<<"</data>"<<endl;
+        fout<<"      <data key=\"d2\">"<<topo.getNodes()->at(node).longitude<<"</data>"<<endl;
+        fout<<"      <data key=\"d3\">"<<topo.getNodes()->at(node).id<<"</data>"<<endl;
+        fout<<"      <data key=\"d4\">"<<MLG->generate()<<"</data>"<<endl;
+        fout<<"      <data key=\"d5\">"<<CLG->generate()<<"</data>"<<endl;
+        fout<<"      <data key=\"d6\">"<<CDCG->generate()<<"</data>"<<endl;
+        fout<<"      <data key=\"d8\">"<<ALG->generate()<<"</data>"<<endl;
+        fout<<"    </node>"<<endl;
         if (node%5==0){
             QCoreApplication::processEvents();
             if (stop) throw StopProgram("stop pressed");
         }
     }
     for (int edge = 0; edge < edgesNum; edge++){
-        fout<<"  <edge source="""<<topo.getEdges()->at(edge).srcId<<"""target="""<<topo.getEdges()->at(edge).dstId<<""">"<<endl;
-        fout<<"    <data key=""d7"">"<<CCG->generate()<<"</data>"<<endl;
-        fout<<"  </edge>"<<endl;
+        fout<<"    <edge source=\""<<topo.getEdges()->at(edge).srcId<<"\" target=\""<<topo.getEdges()->at(edge).dstId<<"\">"<<endl;
+        fout<<"      <data key=\"d7\">"<<CCG->generate()<<"</data>"<<endl;
+        fout<<"    </edge>"<<endl;
         if (edge%5==0){
             QCoreApplication::processEvents();
             if (stop) throw StopProgram("stop pressed");
         }
     }
+    fout<<"  </graph>"<<endl;
     fout<<"</graphml>"<<endl;
 }
 

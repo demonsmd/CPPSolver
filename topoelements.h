@@ -1,10 +1,10 @@
 #ifndef TOPOELEMENTS
 #define TOPOELEMENTS
 
+#include <exceptions.h>
 #include <QtMath>
 #include <QVector>
 #include <iostream>
-#include <exceptions.h>
 
 #define INF 65536
 #define MAX_ITERATIONS 4294967295
@@ -50,13 +50,17 @@ inline unsigned long int CisNpoK(int n, int k)
 
 struct CPPSolution
 {
+    CPPSolution():
+        totalCost(-1), avgLayency(-1), disballance(-1), WCLatency(-1), overload(-1) {}
     QVector<int> controllerPlacement;
     QVector<int> masterControllersDistribution;
     int totalCost;
     int avgLayency;
+    int disballance;
 
     //statistics
     int WCLatency;
+    int overload;
     int WorkTime;
     unsigned long int totalNumberOfIterations;
     unsigned long int FoundIteration;

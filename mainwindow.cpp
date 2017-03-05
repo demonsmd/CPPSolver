@@ -73,82 +73,107 @@ void MainWindow::initConnections()
 {
     //сигналы от MainWindow к Сервису
     connect(ui->LogTextBrowser, SIGNAL(anchorClicked(QUrl)),
-        CPService, SLOT(networkNamePressed(QUrl)));
+            CPService, SLOT(networkNamePressed(QUrl)));
 
     //сигналы от сервиса к MainWindow
     connect(CPService, SIGNAL(toLog(QString)),
-        this, SLOT(toLog(QString)));
+            this, SLOT(toLog(QString)));
     connect(CPService, SIGNAL(programFinnished()),
-        ui->StopButton, SLOT(click()));
+            ui->StopButton, SLOT(click()));
     connect(CPService, SIGNAL(processingTopo(int,int,int,QString)),
-        this, SLOT(processing(int,int,int,QString)));
+            this, SLOT(processing(int,int,int,QString)));
 
     //внутренние сигналы
     connect(CPPParametersUi->acept, SIGNAL(clicked(bool)),
-        CPPParameters, SLOT(accept()));
+            CPPParameters, SLOT(accept()));
 
     connect(CPPParametersUi->aSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(aSpinBox_valueChanged(int)));
+            this, SLOT(aSpinBox_valueChanged(int)));
     connect(CPPParametersUi->bSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(bSpinBox_valueChanged(int)));
+            this, SLOT(bSpinBox_valueChanged(int)));
     connect(CPPParametersUi->LmaxSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(LmaxSpinBox_valueChanged(int)));
+            this, SLOT(LmaxSpinBox_valueChanged(int)));
     connect(CPPParametersUi->ControllerPerfomanceSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(ControllerPerfomanceSpinBox_valueChanged(int)));
+            this, SLOT(ControllerPerfomanceSpinBox_valueChanged(int)));
     connect(CPPParametersUi->SwitchPerfomanceSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(SwitchPerfomanceSpinBox_valueChanged(int)));
+            this, SLOT(SwitchPerfomanceSpinBox_valueChanged(int)));
+    connect(CPPParametersUi->SwitchAVGPerfomanceSB, SIGNAL(valueChanged(int)),
+            this, SLOT(SwitchAVGPerfomanceSB_valueChanged(int)));
     connect(CPPParametersUi->ControllerCostSpinBox, SIGNAL(valueChanged(int)),
-        this, SLOT(ControllerCostSpinBox_valueChanged(int)));
+            this, SLOT(ControllerCostSpinBox_valueChanged(int)));
     connect(CPPParametersUi->ConCostSB, SIGNAL(valueChanged(int)),
-        this, SLOT(ConnectionCostSpinBox_valueChanged(int)));
+            this, SLOT(ConnectionCostSpinBox_valueChanged(int)));
     connect(CPPParametersUi->fixedTimeSB, SIGNAL(valueChanged(int)),
-        this, SLOT(fixedTimeSB_valueChanged(int)));
+            this, SLOT(fixedTimeSB_valueChanged(int)));
     connect(CPPParametersUi->ControllerPerfomanceCheckBox, SIGNAL(clicked(bool)),
-        this, SLOT(ControllerPerfomanceCheckBox_clicked(bool)));
+            this, SLOT(ControllerPerfomanceCheckBox_clicked(bool)));
     connect(CPPParametersUi->LmaxCB, SIGNAL(clicked(bool)),
-        this, SLOT(LmaxCheckBox_clicked(bool)));
+            this, SLOT(LmaxCheckBox_clicked(bool)));
     connect(CPPParametersUi->SwitchPerfomanceCheckBox, SIGNAL(clicked(bool)),
-        this, SLOT(SwitchPerfomanceCheckBox_clicked(bool)));
+            this, SLOT(SwitchPerfomanceCheckBox_clicked(bool)));
+    connect(CPPParametersUi->SwitchAVGPerfomanceCB, SIGNAL(clicked(bool)),
+            this, SLOT(SwitchAVGPerfomanceCB_clicked(bool)));
     connect(CPPParametersUi->ControllerCostCheckBox, SIGNAL(clicked(bool)),
-        this, SLOT(ControllerCostCheckBox_clicked(bool)));
+            this, SLOT(ControllerCostCheckBox_clicked(bool)));
     connect(CPPParametersUi->FixedConCostRB, SIGNAL(clicked(bool)),
-        this, SLOT(FixedConCostRB_clicked(bool)));
+            this, SLOT(FixedConCostRB_clicked(bool)));
     connect(CPPParametersUi->HopsDepConCostRB, SIGNAL(clicked(bool)),
-        this, SLOT(HopsDepConCostRB_clicked(bool)));
+            this, SLOT(HopsDepConCostRB_clicked(bool)));
     connect(CPPParametersUi->LatDepConCostRB, SIGNAL(clicked(bool)),
-        this, SLOT(LatDepConCostRB_clicked(bool)));
+            this, SLOT(LatDepConCostRB_clicked(bool)));
     connect(CPPParametersUi->LinearRB, SIGNAL(clicked()),
-        this, SLOT(LinearRB_clicked()));
+            this, SLOT(LinearRB_clicked()));
     connect(CPPParametersUi->constRB, SIGNAL(clicked()),
-        this, SLOT(constRB_clicked()));
+            this, SLOT(constRB_clicked()));
 
+    connect(AlgoParamUi->acept, SIGNAL(clicked(bool)),
+            AlgoParam, SLOT(accept()));
     connect(AlgoParamUi->topoSizeSB, SIGNAL(valueChanged(int)),
-        this, SLOT(topoSizeSB_valueChanged(int)));
+            this, SLOT(topoSizeSB_valueChanged(int)));
     connect(AlgoParamUi->algoTimeSB, SIGNAL(valueChanged(int)),
-        this, SLOT(algoTimeSB_valueChanged(int)));
+            this, SLOT(algoTimeSB_valueChanged(int)));
     connect(AlgoParamUi->fixedConNumSB, SIGNAL(valueChanged(int)),
-        this, SLOT(fixedConNumSB_valueChanged(int)));
+            this, SLOT(fixedConNumSB_valueChanged(int)));
     connect(AlgoParamUi->incrementalConNumSB, SIGNAL(valueChanged(int)),
-        this, SLOT(incrementalConNumSB_valueChanged(int)));
+            this, SLOT(incrementalConNumSB_valueChanged(int)));
     connect(AlgoParamUi->TopoSizeDependentConNumFromSB, SIGNAL(valueChanged(int)),
-        this, SLOT(TopoSizeDependentConNumFromSB_valueChanged(int)));
+            this, SLOT(TopoSizeDependentConNumFromSB_valueChanged(int)));
     connect(AlgoParamUi->TopoSizeDependentConNumToSB, SIGNAL(valueChanged(int)),
-        this, SLOT(TopoSizeDependentConNumToSB_valueChanged(int)));
+            this, SLOT(TopoSizeDependentConNumToSB_valueChanged(int)));
     connect(AlgoParamUi->FixedConNumRB, SIGNAL(clicked()),
-        this, SLOT(fixedConSB_clicked()));
+            this, SLOT(fixedConSB_clicked()));
     connect(AlgoParamUi->incrementalConNumRB, SIGNAL(clicked()),
-        this, SLOT(incrementalConSB_clicked()));
+            this, SLOT(incrementalConSB_clicked()));
     connect(AlgoParamUi->TopoSizeDependentConNumRB, SIGNAL(clicked()),
-        this, SLOT(TopoSizeDependentConSB_clicked()));
+            this, SLOT(TopoSizeDependentConSB_clicked()));
+    connect(AlgoParamUi->GACrossPosSB, SIGNAL(valueChanged(int)),
+            this, SLOT(GACrossPosSB_valueChanged(int)));
+    connect(AlgoParamUi->GAMutPosSB, SIGNAL(valueChanged(int)),
+            this, SLOT(GAMutPosSB_valueChanged(int)));
+    connect(AlgoParamUi->GAIterationsSB, SIGNAL(valueChanged(int)),
+            this, SLOT(GAIterationsSB_valueChanged(int)));
+    connect(AlgoParamUi->GAPopSizeSB, SIGNAL(valueChanged(int)),
+            this, SLOT(GAPopSizeSB_valueChanged(int)));
+    connect(AlgoParamUi->WTotalCostSB, SIGNAL(valueChanged(int)),
+            this, SLOT(WTotalCostSB_valueChanged(int)));
+    connect(AlgoParamUi->WAvgLatSB, SIGNAL(valueChanged(int)),
+            this, SLOT(WAvgLatSB_valueChanged(int)));
+    connect(AlgoParamUi->WDisballanceSB, SIGNAL(valueChanged(int)),
+            this, SLOT(WDisballanceSB_valueChanged(int)));
+    connect(AlgoParamUi->WWCLatencySB, SIGNAL(valueChanged(int)),
+            this, SLOT(WWCLatencySB_valueChanged(int)));
+    connect(AlgoParamUi->WOverloadSB, SIGNAL(valueChanged(int)),
+            this, SLOT(WOverloadSB_valueChanged(int)));
+
 
     connect(topoGeneratorDialogUi->okPB, SIGNAL(clicked(bool)),
-        this, SLOT(TopoGeneratorOkClicked()));
+            this, SLOT(TopoGeneratorOkClicked()));
     connect(topoGeneratorDialogUi->srcDirPB, SIGNAL(clicked(bool)),
-        this, SLOT(TopoGeneratorsrcDirPB_clicked()));
+            this, SLOT(TopoGeneratorsrcDirPB_clicked()));
     connect(topoGeneratorDialogUi->dstDirPB, SIGNAL(clicked(bool)),
-        this, SLOT(TopoGeneratordstDirPB_clicked()));
+            this, SLOT(TopoGeneratordstDirPB_clicked()));
     connect(topoGeneratorDialogUi->cancelPB, SIGNAL(clicked(bool)),
-        topoGeneratorDialog, SLOT(reject()));
+            topoGeneratorDialog, SLOT(reject()));
 
 }
 
@@ -184,6 +209,7 @@ void MainWindow::applySettings()
         CPPParametersUi->LmaxSpinBox->setValue(CPSettings->Lmax);
         CPPParametersUi->ControllerPerfomanceSpinBox->setValue(CPSettings->CPerfomance);
         CPPParametersUi->SwitchPerfomanceSpinBox->setValue(CPSettings->SPerfomance);
+        CPPParametersUi->SwitchAVGPerfomanceSB->setValue(CPSettings->AVGSPerfomance);
         CPPParametersUi->ConCostSB->setValue(CPSettings->SCCost);
         CPPParametersUi->ControllerCostSpinBox->setValue(CPSettings->CCost);
         CPPParametersUi->aSpinBox->setValue(CPSettings->SCTF_a);
@@ -194,6 +220,7 @@ void MainWindow::applySettings()
         CPPParametersUi->ControllerPerfomanceCheckBox->setChecked(CPSettings->FixedCP);
         CPPParametersUi->LmaxCB->setChecked(CPSettings->LmaxMultiplier);
         CPPParametersUi->SwitchPerfomanceCheckBox->setChecked(CPSettings->FixedSP);
+        CPPParametersUi->SwitchAVGPerfomanceCB->setChecked(CPSettings->FixedAVGSP);
         CPPParametersUi->HopsDepConCostRB->setChecked(CPSettings->HopsDepSCC);
         CPPParametersUi->LatDepConCostRB->setChecked(CPSettings->LatDepSCC);
         CPPParametersUi->constRB->setChecked(CPSettings->constST);
@@ -208,6 +235,15 @@ void MainWindow::applySettings()
         AlgoParamUi->TopoSizeDependentConNumFromSB->setValue(CPSettings->PercentageConNumFrom);
         AlgoParamUi->TopoSizeDependentConNumToSB->setValue(CPSettings->PercentageConNumTo);
         AlgoParamUi->TopoSizeDependentConNumRB->setChecked(CPSettings->PercentageCon);
+        AlgoParamUi->GACrossPosSB->setValue(CPSettings->selectionPosibility);
+        AlgoParamUi->GAMutPosSB->setValue(CPSettings->mutationPosibility);
+        AlgoParamUi->GAIterationsSB->setValue(CPSettings->geneticIterations);
+        AlgoParamUi->GAPopSizeSB->setValue(CPSettings->geneticPopSize);
+        AlgoParamUi->WTotalCostSB->setValue(CPSettings->WTotalCost);
+        AlgoParamUi->WAvgLatSB->setValue(CPSettings->WAvgLat);
+        AlgoParamUi->WDisballanceSB->setValue(CPSettings->WDisballance);
+        AlgoParamUi->WWCLatencySB->setValue(CPSettings->WWCLatency);
+        AlgoParamUi->WOverloadSB->setValue(CPSettings->WOverload);
 
         topoGeneratorDialogUi->ConstMaxSwitchLoadSB->setValue(MWSettings->value("topoGenerator/ConstMaxSwitchLoadSB","1000").toInt());
         topoGeneratorDialogUi->EMaxSwitchLoadSB->setValue(MWSettings->value("topoGenerator/EMaxSwitchLoadSB","1000").toInt());
@@ -408,6 +444,8 @@ void MainWindow::on_AlgorithmChooseComboBox_currentIndexChanged(int index)
 {
     if (CPSettings)
         CPSettings->algorithm=index;
+
+    AlgoParamUi->algorithmGB->setEnabled(CPService->ALGORITHMS[index] == "Генетический" ? true : false);
 }
 
 void MainWindow::on_graphvizCB_clicked(bool checked)
@@ -467,6 +505,11 @@ void MainWindow::SwitchPerfomanceSpinBox_valueChanged(int arg1)
     CPSettings->SPerfomance=arg1;
 }
 
+void MainWindow::SwitchAVGPerfomanceSB_valueChanged(int arg1)
+{
+    CPSettings->AVGSPerfomance=arg1;
+}
+
 void MainWindow::ControllerCostSpinBox_valueChanged(int arg1)
 {
     CPSettings->CCost=arg1;
@@ -505,6 +548,11 @@ void MainWindow::LmaxCheckBox_clicked(bool checked)
 void MainWindow::SwitchPerfomanceCheckBox_clicked(bool checked)
 {
     CPSettings->FixedSP=checked;
+}
+
+void MainWindow::SwitchAVGPerfomanceCB_clicked(bool checked)
+{
+    CPSettings->FixedAVGSP=checked;
 }
 
 void MainWindow::ControllerCostCheckBox_clicked(bool checked)
@@ -570,6 +618,42 @@ void MainWindow::fixedConNumSB_valueChanged(int arg1)
     CPSettings->FixedConNum=arg1;
 }
 
+void MainWindow::GACrossPosSB_valueChanged(int arg1){
+    CPSettings->selectionPosibility = arg1;
+}
+
+void MainWindow::GAMutPosSB_valueChanged(int arg1){
+    CPSettings->mutationPosibility = arg1;
+}
+
+void MainWindow::GAIterationsSB_valueChanged(int arg1){
+    CPSettings->geneticIterations = arg1;
+}
+
+void MainWindow::WTotalCostSB_valueChanged(int arg1){
+    CPSettings->WTotalCost = arg1;
+}
+
+void MainWindow::WAvgLatSB_valueChanged(int arg1){
+    CPSettings->WAvgLat = arg1;
+}
+
+void MainWindow::WDisballanceSB_valueChanged(int arg1){
+    CPSettings->WDisballance = arg1;
+}
+
+void MainWindow::WWCLatencySB_valueChanged(int arg1){
+    CPSettings->WWCLatency = arg1;
+}
+
+void MainWindow::WOverloadSB_valueChanged(int arg1){
+    CPSettings->WOverload = arg1;
+}
+
+void MainWindow::GAPopSizeSB_valueChanged(int arg1){
+    CPSettings->geneticPopSize = arg1;
+}
+
 void MainWindow::incrementalConNumSB_valueChanged(int arg1)
 {
     CPSettings->IncrementalConNum=arg1;
@@ -628,40 +712,40 @@ void MainWindow::TopoGeneratorOkClicked(){
     int tab = topoGeneratorDialogUi->MaxSwitchLoadTabWidget->currentIndex();
     MWSettings->setValue("topoGenerator/MaxSwitchLoadTab",tab);
     switch (tab) {
-        case 0: { MLG = new ConstMaxLoadGeneator(topoGeneratorDialogUi->ConstMaxSwitchLoadSB->value());}
-        case 1: { MLG = new NormalDistributedMaxLoadGeneator(topoGeneratorDialogUi->EMaxSwitchLoadSB->value(), topoGeneratorDialogUi->DMaxSwitchLoadSB->value(), topoGeneratorDialogUi->RMaxSwitchLoadSB->value());}
+    case 0: { MLG = new ConstMaxLoadGeneator(topoGeneratorDialogUi->ConstMaxSwitchLoadSB->value());}
+    case 1: { MLG = new NormalDistributedMaxLoadGeneator(topoGeneratorDialogUi->EMaxSwitchLoadSB->value(), topoGeneratorDialogUi->DMaxSwitchLoadSB->value(), topoGeneratorDialogUi->RMaxSwitchLoadSB->value());}
     }
 
     //Производительность контроллеров
     tab = topoGeneratorDialogUi->ConLoadTabWidget->currentIndex();
     MWSettings->setValue("topoGenerator/ConLoadTab",tab);
     switch (tab) {
-        case 0: { CLG = new ConstControllerLoadGeneator(topoGeneratorDialogUi->ConstConLoadSB->value());}
+    case 0: { CLG = new ConstControllerLoadGeneator(topoGeneratorDialogUi->ConstConLoadSB->value());}
     }
 
     //Средняя производительность коммутаторов
     tab = topoGeneratorDialogUi->AvgSwitchLoadTabWidget->currentIndex();
     MWSettings->setValue("topoGenerator/AvgSwitchLoadTab",tab);
     switch (tab) {
-        case 0: { ALG = new ConstAvgLoadGeneator(topoGeneratorDialogUi->ConstAvgSwitchLoadSB->value());}
-        case 1: { ALG = new NormalDistributedAvgLoadGeneator(topoGeneratorDialogUi->EAvgSwitchLoadSB->value(), topoGeneratorDialogUi->DAvgSwitchLoadSB->value(), topoGeneratorDialogUi->RAvgSwitchLoadSB->value());}
-        case 2: { ALG = new MaxLoadLinearDependedAvgLoadGeneator(MLG, topoGeneratorDialogUi->MaxDepAvgSwitchLoadSB->value());}
+    case 0: { ALG = new ConstAvgLoadGeneator(topoGeneratorDialogUi->ConstAvgSwitchLoadSB->value());}
+    case 1: { ALG = new NormalDistributedAvgLoadGeneator(topoGeneratorDialogUi->EAvgSwitchLoadSB->value(), topoGeneratorDialogUi->DAvgSwitchLoadSB->value(), topoGeneratorDialogUi->RAvgSwitchLoadSB->value());}
+    case 2: { ALG = new MaxLoadLinearDependedAvgLoadGeneator(MLG, topoGeneratorDialogUi->MaxDepAvgSwitchLoadSB->value());}
     }
 
     //Стоимость управляющих соединений
     tab = topoGeneratorDialogUi->ConnectionCostTabWidget->currentIndex();
     MWSettings->setValue("topoGenerator/ConnectionCostTab",tab);
     switch (tab) {
-        case 0: { CCG = new ConstConnectionCostGeneator(topoGeneratorDialogUi->ConstConCostSB->value());}
-        case 1: { CCG = new LatencyDependentConnectionCostGeneator(topoGeneratorDialogUi->LatDepConCostSB->value());}
+    case 0: { CCG = new ConstConnectionCostGeneator(topoGeneratorDialogUi->ConstConCostSB->value());}
+    case 1: { CCG = new LatencyDependentConnectionCostGeneator(topoGeneratorDialogUi->LatDepConCostSB->value());}
     }
 
     //Стоимость размещения контроллеров
     tab = topoGeneratorDialogUi->ConCostTabWidget->currentIndex();
     MWSettings->setValue("topoGenerator/ConCostTab",tab);
     switch (tab) {
-        case 0: { CDCG = new ConstControllerDeploymentCostGeneator(topoGeneratorDialogUi->ConstContCostSB->value());}
-        case 1: { CDCG = new NormalDistributedControllerDeploymentCostGeneator(topoGeneratorDialogUi->EContCostSB->value(), topoGeneratorDialogUi->DContCostSB->value(), topoGeneratorDialogUi->RContCostSB->value());}
+    case 0: { CDCG = new ConstControllerDeploymentCostGeneator(topoGeneratorDialogUi->ConstContCostSB->value());}
+    case 1: { CDCG = new NormalDistributedControllerDeploymentCostGeneator(topoGeneratorDialogUi->EContCostSB->value(), topoGeneratorDialogUi->DContCostSB->value(), topoGeneratorDialogUi->RContCostSB->value());}
     }
 
     MWSettings->setValue("topoGenerator/ConstMaxSwitchLoadSB",topoGeneratorDialogUi->ConstMaxSwitchLoadSB->value());

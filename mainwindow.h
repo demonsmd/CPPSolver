@@ -1,15 +1,15 @@
-#include "exceptions.h"
-#include "ui_cppparameters.h"
-#include <QSettings>
-#include <QProgressBar>
-#include "ui_alogorithmparametrs.h"
-#include "ui_topogeneratordialog.h"
-
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
+#include "exceptions.h"
+#include "ui_cppparameters.h"
+#include "ui_alogorithmparametrs.h"
+#include "ui_topogeneratordialog.h"
 #include "CPService.h"
+
+#include <QSettings>
+#include <QProgressBar>
+#include <QMainWindow>
 
 namespace Ui {
 class MainWindow;
@@ -42,6 +42,7 @@ private slots:
     void LmaxSpinBox_valueChanged(int arg1);
     void ControllerPerfomanceSpinBox_valueChanged(int arg1);
     void SwitchPerfomanceSpinBox_valueChanged(int arg1);
+    void SwitchAVGPerfomanceSB_valueChanged(int arg1);
     void ControllerCostSpinBox_valueChanged(int arg1);
     void ConnectionCostSpinBox_valueChanged(int arg1);
     void fixedTimeSB_valueChanged(int arg1);
@@ -50,6 +51,7 @@ private slots:
     void ControllerPerfomanceCheckBox_clicked(bool checked);
     void LmaxCheckBox_clicked(bool checked);
     void SwitchPerfomanceCheckBox_clicked(bool checked);
+    void SwitchAVGPerfomanceCB_clicked(bool checked);
     void ControllerCostCheckBox_clicked(bool checked);
     void FixedConCostRB_clicked(bool checked);
     void HopsDepConCostRB_clicked(bool checked);
@@ -66,6 +68,15 @@ private slots:
     void fixedConSB_clicked();
     void incrementalConSB_clicked();
     void TopoSizeDependentConSB_clicked();
+    void GACrossPosSB_valueChanged(int arg1);
+    void GAMutPosSB_valueChanged(int arg1);
+    void GAIterationsSB_valueChanged(int arg1);
+    void GAPopSizeSB_valueChanged(int arg1);
+    void WTotalCostSB_valueChanged(int arg1);
+    void WAvgLatSB_valueChanged(int arg1);
+    void WDisballanceSB_valueChanged(int arg1);
+    void WWCLatencySB_valueChanged(int arg1);
+    void WOverloadSB_valueChanged(int arg1);
 
     void  TopoGeneratorsrcDirPB_clicked();
     void  TopoGeneratordstDirPB_clicked();

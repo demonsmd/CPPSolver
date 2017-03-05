@@ -64,6 +64,8 @@ void GRAPHMLReader::validate()
             (*nodes)[i].ControllerLoad=CPSettings->CPerfomance;
         if (CPSettings->FixedSP || (*nodes)[i].SwitchLoad<0)
             (*nodes)[i].SwitchLoad=CPSettings->SPerfomance;
+        if (CPSettings->FixedAVGSP || (*nodes)[i].AverageSwitchLoad<0)
+            (*nodes)[i].AverageSwitchLoad=CPSettings->AVGSPerfomance;
 
         ensureExp((*nodes)[i].id>=0, QString("id не может принимать значение %1").arg(QString::number((*nodes)[i].id)));
         ensureExp(!nset.contains((*nodes)[i].id), QString("найдены 2 вершины с id =  %1").arg(QString::number((*nodes)[i].id)));
@@ -105,6 +107,7 @@ void GRAPHMLReader::parce(QString fileName)
     while(!xmlstream.atEnd()&&!xmlstream.hasError())
     {
         token = xmlstream.readNext();
+        ensureExp(token!=QXmlStreamReader::Invalid, "xml file is incorrect");
         if (token == QXmlStreamReader::StartDocument)
             continue;
 SAMETOKEN:	if (token == QXmlStreamReader::StartElement)

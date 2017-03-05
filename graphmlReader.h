@@ -4,8 +4,8 @@
 #include "exceptions.h"
 #include "topoelements.h"
 #include "CPSettings.h"
-#include <QVector>
 #include <iostream>
+#include <QVector>
 #include <QString>
 
 class GRAPHMLReader
