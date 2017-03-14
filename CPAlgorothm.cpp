@@ -24,6 +24,8 @@ ControllerPlacementAlgorothm::ControllerPlacementAlgorothm(const NetworkWithAlgo
     {
         minConNum=nodesNumber*settings->PercentageConNumFrom/100;
         maxConNum=nodesNumber*settings->PercentageConNumTo/100;
+        if (minConNum<2)
+            minConNum = 2;
     }
 }
 
@@ -1081,7 +1083,6 @@ bool GeneticAlgorithm::findCorrectDistributionForCur(int failController, int fai
         curDistributionPopulation.push_back(dist);
     }
 
-    iteration = settings->geneticIterations * (1+nodesNumber*conNum*(curPopNum));
     for (int i=0;i<settings->geneticIterations;i++){
         emit curTopoProcess(iteration++, totalNumberOfIterations, conNum);
         QCoreApplication::processEvents();
@@ -1178,6 +1179,8 @@ CPPSolution GeneticAlgorithm::solveCPP()
 {
     bestSolution = CPPSolution();
 
+    if (minConNum<2)
+        minConNum = 2;
     for (int conNum = minConNum; conNum<=maxConNum; conNum++){
         try
         {
@@ -1210,9 +1213,11 @@ CPPSolution GeneticAlgorithm::solveCPP()
             }
 
             QVector<CPPSolution> correctSolutions;
-            for (curPopNum = 0; curPopNum<curPopulation.size();curPopNum++)
+            for (curPopNum = 0; curPopNum<curPopulation.size();curPopNum++){
+                iteration = settings->geneticIterations * (1+(nodesNumber+1)*(1+conNum)*curPopNum);
                 if (checkSolutionCorrectness(curPopulation[curPopNum]))
                     correctSolutions.push_back(curPopulation[curPopNum]);
+            }
 
             int bestMetric = -1;
             for (int i=0;i<correctSolutions.size();i++){
