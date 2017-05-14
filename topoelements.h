@@ -6,8 +6,14 @@
 #include <QVector>
 #include <iostream>
 
-#define INF 65536
+#define INF 10000000
+#define LAUNCH_NUM 1
 #define MAX_ITERATIONS 4294967295
+#define EASY_OUTPUT false
+
+#define BOOL int
+#define TRUE 1
+#define FALSE 0
 enum programStatus {RUNNING, NOTRUNNING};
 
 using namespace std;
@@ -35,9 +41,11 @@ struct EDGE
     EDGE(): HopCost(-1), srcId(-1), dstId(-1){}
 };
 
-inline int geoLatency(float srcLat, float srcLong, float dstLat, float dstLong)
+inline float geoLatency(float srcLat, float srcLong, float dstLat, float dstLong)
 {
-    return round(6371*qAcos(qSin(qDegreesToRadians(srcLat))*qSin(qDegreesToRadians(dstLat)) + qCos(qDegreesToRadians(dstLat))*qCos(qDegreesToRadians(srcLat))*qCos(qDegreesToRadians(srcLong)-qDegreesToRadians(dstLong))));
+    return round(6371*qAcos((float)(qSin(qDegreesToRadians(srcLat))*qSin(qDegreesToRadians(dstLat)) +
+                            qCos(qDegreesToRadians(dstLat))*qCos(qDegreesToRadians(srcLat))*
+                            qCos(qDegreesToRadians(srcLong)-qDegreesToRadians(dstLong)))));
 }
 inline unsigned long int CisNpoK(int n, int k)
 {
@@ -64,6 +72,9 @@ struct CPPSolution
     int WorkTime;
     unsigned long int totalNumberOfIterations;
     unsigned long int FoundIteration;
+    int mainMetric;
+    int cnstraintMetric;
+    BOOL isSolution;
 };
 
 struct SolvedTopo

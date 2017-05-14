@@ -4,6 +4,7 @@
 #include <iostream>
 #include <QFileInfo>
 #include <topogenerator.h>
+#include <iostream>
 
 using namespace std;
 
@@ -78,6 +79,8 @@ void MainWindow::initConnections()
     //сигналы от сервиса к MainWindow
     connect(CPService, SIGNAL(toLog(QString)),
             this, SLOT(toLog(QString)));
+    connect(CPService, SIGNAL(clearLog()),
+            this, SLOT(clearLog()));
     connect(CPService, SIGNAL(programFinnished()),
             ui->StopButton, SLOT(click()));
     connect(CPService, SIGNAL(processingTopo(int,int,int,QString)),
@@ -445,7 +448,9 @@ void MainWindow::on_AlgorithmChooseComboBox_currentIndexChanged(int index)
     if (CPSettings)
         CPSettings->algorithm=index;
 
-    AlgoParamUi->algorithmGB->setEnabled(CPService->ALGORITHMS[index] == "Генетический" ? true : false);
+    bool gen = CPService->ALGORITHMS[index] == "Генетический" ||
+            CPService->ALGORITHMS[index] == "Жадный+Генетический";
+    AlgoParamUi->algorithmGB->setEnabled(gen);
 }
 
 void MainWindow::on_graphvizCB_clicked(bool checked)

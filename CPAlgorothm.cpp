@@ -387,7 +387,6 @@ void ControllerPlacementAlgorothm::computeCostAndLatForCur()
             minAvgLoad = avgLoads[i];
     }
     curSolution.disballance = maxAvgLoad-minAvgLoad;
-
 }
 
 void ControllerPlacementAlgorothm::checkIfCurIsBest()
@@ -490,6 +489,35 @@ CPPSolution GreedyAlgorithm::solveCPP()
     return bestSolution;
 }
 
+CPPSolution GreedyAndGenetic::solveCPP()
+{
+    for (int conNum = minConNum; conNum<=maxConNum; conNum++){
+        //итерация по всевозможным количествам контроллеров
+        bestSolution.totalNumberOfIterations = totalNumberOfIterations = CisNpoK(nodesNumber, conNum);
+        emit curTopoProcess(0, totalNumberOfIterations, conNum);
+        try
+        {
+            timer.setSingleShot(true);
+            timer.start(settings->algoTime*60*1000);
+            seenPlacements.clear();
+            bestSolution.isSolution=FALSE;
+            iteration=0;
+            totalNumberOfIterations=settings->geneticIterations*(conNum*nodesNumber + 1);
+            curSolution.WCLatency=0;
+
+            placeInTopoCenter(conNum);
+            checkChildSolution(NULL);
+            if (bestSolution.isSolution==TRUE)
+                return bestSolution;
+        }
+        catch(Exceptions ex)
+        {
+            ensureExp(!toLongToWait, "время работы топологии слишком большое");
+        }
+    }
+    return bestSolution;
+}
+
 void GreedyAlgorithm::placeInTopoCenter(int conNum)
 {
     QMap<int,int> latencys;
@@ -512,6 +540,300 @@ void GreedyAlgorithm::placeInTopoCenter(int conNum)
     seenPlacements.insert(placement);
     curSolution.WCLatency = 0;
     curSolution.totalCost=-1;
+}
+
+void GreedyAndGenetic::findMainMetricForCur(){
+    int conNum = curSolution.controllerPlacement.size();
+
+    QVector<QVector<int>> curDistributionPopulation;
+
+    QSet<int> fixedNodes;
+    //generating initial population
+    for (int i=0;i<settings->geneticPopSize;i++){
+        QVector<int> dist (nodesNumber);
+        for (int i=0;i<nodesNumber;i++)
+                dist[i] = qrand() % conNum;
+        for (int c=0;c<conNum;c++){
+            dist[curSolution.controllerPlacement[c]] = c;
+            fixedNodes.insert(curSolution.controllerPlacement[c]);
+        }
+        curDistributionPopulation.push_back(dist);
+    }
+
+    for (int i=0;i<settings->geneticIterations;i++){
+        emit curTopoProcess(iteration++, totalNumberOfIterations, conNum);
+        QCoreApplication::processEvents();
+        if (*pStatus==NOTRUNNING)
+            throw StopProgram();
+
+        //crossing
+        QVector<QVector<int>>childPopulation;
+        for (int dist = 0;dist<curDistributionPopulation.size();dist++){
+            QVector<int> newDist(nodesNumber);
+            int parent = qrand() % (curDistributionPopulation.size()-1);
+            if (parent>=i) parent++;
+
+            for (int node = 0; node<nodesNumber;node++){
+                bool useMain = qrand() % 101 >= settings->selectionPosibility;
+                if (useMain)
+                    newDist[node] = curDistributionPopulation[dist][node];
+                else
+                    newDist[node] = curDistributionPopulation[parent][node];
+            }
+            childPopulation.push_back(newDist);
+        }
+        for (int i=0;i<childPopulation.size();i++)
+            curDistributionPopulation.push_back(childPopulation[i]);
+
+        //mutation
+
+        QVector<int> bestDist;
+        for (int dist = 0;dist<curDistributionPopulation.size();dist++){
+            for (int node = 0; node<nodesNumber;node++){
+                if (fixedNodes.contains(node))
+                    continue;
+                if (qrand() % 101 >= settings->mutationPosibility)
+                    curDistributionPopulation[dist][node] = qrand() % conNum;
+            }
+        }
+
+        //selection
+        QMultiMap<int, int> distMM;
+        for (int dist=0; dist<curDistributionPopulation.size();dist++){
+            //totalcost
+            int totalCost = 0;
+            for (int con = 0; con<conNum; con++)
+                totalCost += (*network->getNodes())[curSolution.controllerPlacement[con]].ControllerCost;
+            for (int node = 0;node<nodesNumber;node++)
+                totalCost += (*network->getConCostMatr())[node]
+                        [curSolution.controllerPlacement[  curDistributionPopulation[dist][node]  ] ];
+            curSolution.totalCost = totalCost;
+
+            //avgLat
+            QVector<int> tmp = curSolution.masterControllersDistribution;
+            curSolution.masterControllersDistribution = curDistributionPopulation[dist];
+            computeAVGTimeForCur();
+            curSolution.masterControllersDistribution = tmp;
+
+            //disbalance
+            QVector<int> avgLoads(conNum);
+            for (int node = 0; node<nodesNumber; node++){
+                avgLoads[curDistributionPopulation[dist][node]] += (*network->getNodes())[node].AverageSwitchLoad;
+            }
+            int maxAvgLoad = avgLoads[0];
+            int minAvgLoad = avgLoads[0];
+            for (int i=1;i<avgLoads.size();i++){
+                if (avgLoads[i]>maxAvgLoad)
+                    maxAvgLoad = avgLoads[i];
+                if (avgLoads[i]<minAvgLoad)
+                    minAvgLoad = avgLoads[i];
+            }
+            curSolution.disballance = maxAvgLoad-minAvgLoad;
+            int mainMetric = W_totalCost*totalCost + W_avgLayency*curSolution.avgLayency + W_disballance* curSolution.disballance;
+            distMM.insert(mainMetric, dist);
+            if (bestSolution.mainMetric > mainMetric){
+                bestSolution.mainMetric = mainMetric;
+                bestSolution.controllerPlacement = curSolution.controllerPlacement;
+                bestSolution.masterControllersDistribution = curDistributionPopulation[dist];
+                bestSolution.disballance = curSolution.disballance;
+                bestSolution.totalCost = totalCost;
+                bestSolution.avgLayency = curSolution.avgLayency;
+                bestSolution.isSolution = TRUE;
+            }
+        }
+        if (curSolution.mainMetric > distMM.begin().key()){
+            curSolution.mainMetric = distMM.begin().key();
+            curSolution.masterControllersDistribution = curDistributionPopulation[distMM.begin().value()];
+        }
+        QVector<QVector<int>> newDistPopulation;
+        for (int i=0;i<settings->geneticPopSize;i++)
+            newDistPopulation.push_back(curDistributionPopulation[(distMM.begin()+i).value()]);
+        curDistributionPopulation = newDistPopulation;
+    }
+}
+
+int GreedyAndGenetic::findCorrectDistributionForCurWithMetric(int failController, int failSwitch, const QVector<QVector<int> >& newShortestMatrix){
+    int conNum = curSolution.controllerPlacement.size();
+
+    //определение времени синхронизации
+    QSet<int> conPlaces;
+    for (int c=0;c<conNum;c++)
+        if (c != failController)
+            conPlaces.insert(curSolution.controllerPlacement[c]);
+    int syncTime;
+    if (conPlaces.contains(failSwitch))
+        syncTime = computeSynTimeForCur(failController, network->getShortestMatrix());
+    else
+        syncTime = computeSynTimeForCur(failController, &newShortestMatrix);
+
+    QVector<QVector<int>> curDistributionPopulation;
+
+    QSet<int> fixedNodes;
+    fixedNodes.insert(failSwitch);
+    //generating initial population
+    for (int i=0;i<settings->geneticPopSize;i++){
+        QVector<int> dist (nodesNumber);
+        for (int i=0;i<nodesNumber;i++){
+            if (i==failSwitch)
+                dist[i] = -1;
+            else{
+                if (failController==-1)
+                    dist[i] = qrand() % conNum;
+                else{
+                    int newCon = qrand() % (conNum - 1);
+                    dist[i] = newCon >= failController ? newCon+1 : newCon ;
+                }
+            }
+        }
+        for (int c=0;c<conNum;c++){
+            if (c == failController || curSolution.controllerPlacement[c] == failSwitch)
+                continue;
+            dist[curSolution.controllerPlacement[c]] = c;
+            fixedNodes.insert(curSolution.controllerPlacement[c]);
+        }
+        curDistributionPopulation.push_back(dist);
+    }
+
+    int bestOL;
+    for (int i=0;i<settings->geneticIterations;i++){
+        emit curTopoProcess(iteration++, totalNumberOfIterations, conNum);
+        QCoreApplication::processEvents();
+        if (*pStatus==NOTRUNNING)
+            throw StopProgram();
+
+        QVector<QVector<int>> crossingChildren;
+        //crossing
+        for (int dist = 0;dist<curDistributionPopulation.size();dist++){
+            QVector<int> newDist(nodesNumber);
+            int parent = qrand() % (curDistributionPopulation.size()-1);
+            if (parent>=i) parent++;
+
+            for (int node = 0; node<nodesNumber;node++){
+                bool useMain = qrand() % 101 >= settings->selectionPosibility;
+                if (useMain)
+                    newDist[node] = curDistributionPopulation[dist][node];
+                else
+                    newDist[node] = curDistributionPopulation[parent][node];
+            }
+            crossingChildren.push_back(newDist);
+        }
+        for (int i=0;i<crossingChildren.size();i++){
+            curDistributionPopulation.push_back(crossingChildren[i]);
+        }
+
+        //mutation
+
+        for (int dist = 0;dist<curDistributionPopulation.size();dist++){
+            for (int node = 0; node<nodesNumber;node++){
+                if (fixedNodes.contains(node))
+                    continue;
+                if (qrand() % 101 >= settings->mutationPosibility){
+                    int newCon = qrand() % (conNum - 1);
+                    curDistributionPopulation[dist][node] = newCon >= failController ? newCon+1 : newCon ;
+                }
+            }
+        }
+
+        //selection
+        QMultiMap<int, int> distMM;
+        int bestWCL, bestOverl;
+        int bestMetric = INF;
+        for (int dist=0; dist<curDistributionPopulation.size();dist++){
+            //вычисление междоменной и внутридоменной задержки и проверка задержки
+            curSolution.masterControllersDistribution = curDistributionPopulation[dist];
+            int WCL = computeWCLTime(failController, failSwitch, &newShortestMatrix,syncTime);
+
+            //проверка загруженности контроллеров:
+            QVector<int> conLoad(conNum,0);
+            for (int i=0;i<nodesNumber;i++)
+            {
+                if (i==failSwitch)
+                    continue;
+                conLoad[curDistributionPopulation[dist][i]]+=(*network->getNodes())[i].SwitchLoad;
+            }
+            int overload = 0;
+            for (int c = 0; c<conNum;c++)
+                if (conLoad[c]>network->getNodes()->
+                        at(curSolution.controllerPlacement[c]).ControllerLoad){
+                    if (conLoad[c] - network->getNodes()->
+                            at(curSolution.controllerPlacement[c]).ControllerLoad > overload)
+                        overload = conLoad[c] - network->getNodes()->
+                                at(curSolution.controllerPlacement[c]).ControllerLoad;
+                }
+            int oWCL = 0;
+            if (WCL > settings->totalLmax)
+                oWCL = settings->totalLmax - WCL;
+
+            int metric = W_overload*overload + W_WCLatency*oWCL;
+            distMM.insert(metric, dist);
+            if (metric<bestMetric){
+                bestWCL = WCL;
+                bestOverl = overload;
+            }
+        }
+        bestSolution.WCLatency = bestWCL;
+        bestSolution.overload = bestOverl;
+        QVector<QVector<int>> newDistPopulation;
+        bestOL = distMM.begin().key();
+        bestSolution.cnstraintMetric = bestOL;
+        for (int i=0;i<settings->geneticPopSize;i++)
+            newDistPopulation.push_back(curDistributionPopulation[(distMM.begin()+i).value()]);
+        curDistributionPopulation = newDistPopulation;
+    }
+    return bestOL;
+}
+
+void GreedyAndGenetic::checkChildSolution(CPPSolution* parentSol)
+{
+    curSolution.cnstraintMetric = curSolution.mainMetric = INF;
+    int conNum = curSolution.controllerPlacement.size();
+
+    curSolution.cnstraintMetric = 0;
+    for (int failController=0; failController<conNum;failController++)
+    {
+        //итерация по всевозможным отказам контроллера (-1 - нет отказов контроллера)
+        for (int failSwitch=0; failSwitch<nodesNumber; failSwitch++)
+        {
+            QCoreApplication::processEvents();
+            ensureExp(!toLongToWait, "время работы топологии слишком большое");
+            if (*pStatus==NOTRUNNING)
+                throw StopProgram();
+            //==================== сценарий отказа зафиксирован ====================
+            //======= изменение внутреннего представления топологии после отказа =======
+            ensureExp(!toLongToWait, "время работы топологии слишком большое");
+            if (*pStatus==NOTRUNNING)
+                throw StopProgram();
+            QVector<QVector<int> > newConnectivityMatrix = (*network->getConnectivityMatrix());
+            QVector<QVector<int> > newShortestMatrix;
+            for (int i=0;i<nodesNumber;i++) //создание новой матрицы связности
+                for (int j=0; j<nodesNumber;j++)
+                {
+                    if (i==failSwitch || j==failSwitch)
+                    {
+                        newConnectivityMatrix[i][j] = INF;
+                    }
+                }
+            network->makeShortestMatr(newShortestMatrix,newConnectivityMatrix,nodesNumber);
+
+            //=======================================================================
+            int badMetrik = findCorrectDistributionForCurWithMetric(failController, failSwitch, newShortestMatrix);
+            if (curSolution.cnstraintMetric < badMetrik)
+                curSolution.cnstraintMetric = badMetrik;
+        }
+    }
+    if (curSolution.cnstraintMetric>0){
+        curSolution.isSolution = FALSE;
+        curSolution.mainMetric = INF;
+    } else {
+        curSolution.isSolution = TRUE;
+        findMainMetricForCur();
+    }
+
+    //просмотрели все сценарии отказа
+    if (parentComparation(parentSol))
+        solveNeighbors();
+    else
+        return;
 }
 
 void GreedyAlgorithm::checkChildSolution(CPPSolution* parentSol)
@@ -546,6 +868,7 @@ void GreedyAlgorithm::checkChildSolution(CPPSolution* parentSol)
             network->makeShortestMatr(newShortestMatrix,newConnectivityMatrix,nodesNumber);
 
             //=======================================================================
+            //getting start cur.distrib
             initialDistribution(failSwitch, failController, newShortestMatrix);
             controllerLoadCheck(failSwitch, failController, newShortestMatrix);
             connectionLatencyCheck(failSwitch, failController, newShortestMatrix);
@@ -556,6 +879,8 @@ void GreedyAlgorithm::checkChildSolution(CPPSolution* parentSol)
     {
         if (curSolution.WCLatency<=settings->totalLmax)
             checkIfCurIsBest();
+        else
+            iteration+=settings->geneticIterations;
         solveNeighbors();
     }
     else
@@ -703,6 +1028,27 @@ void GreedyAlgorithm::connectionLatencyCheck(int failSwich, int failCon, const Q
         curSolution.WCLatency=WCL;
 }
 
+bool GreedyAndGenetic::parentComparation(CPPSolution* parentSol)
+{
+    if (parentSol==NULL)
+        return true;
+    if (curSolution.isSolution){
+        //получили решение!
+        if (!parentSol->isSolution)
+            return true;
+        if (curSolution.mainMetric <= parentSol->mainMetric)
+            return true;
+        return false;
+    } else {
+        if (parentSol->isSolution)
+            return false;
+        if (curSolution.cnstraintMetric >= parentSol->cnstraintMetric)
+            return false;
+        return true;
+    }
+    return false;
+}
+
 
 bool GreedyAlgorithm::parentComparation(CPPSolution* parentSol)
 {
@@ -772,6 +1118,57 @@ void GreedyAlgorithm::solveNeighbors()
     }
 }
 
+void GreedyAndGenetic::solveNeighbors()
+{
+    //curSol - предок надо рекурсивно вызвать всех соседей
+    CPPSolution parentSol = curSolution;
+
+    int conNum = curSolution.controllerPlacement.size();
+
+    QSet<int> conPlaces;
+    for (int i=0;i<conNum;i++)
+        conPlaces.insert(curSolution.controllerPlacement[i]);
+
+    int newConPlaces = 0;
+    for (int con = 0;con<conNum;con++)
+        for (int n=0;n<nodesNumber;n++){
+            if (conPlaces.contains(n))
+                continue;
+            if((*network->getConnectivityMatrix())[curSolution.controllerPlacement[con]][n]!=INF)
+                newConPlaces++;
+        }
+
+    totalNumberOfIterations += newConPlaces*settings->geneticIterations*(nodesNumber*conNum + 1);
+
+    for (int con = 0;con<conNum;con++)
+    {
+        for (int n=0;n<nodesNumber;n++)
+        {
+            if (n==curSolution.controllerPlacement[con] || conPlaces.contains(n))
+                continue;
+            if((*network->getConnectivityMatrix())[curSolution.controllerPlacement[con]][n]!=INF)
+                //есть линк к узлу n
+            {
+                curSolution.controllerPlacement[con]=n;
+
+                QSet<int> set;
+                for (int i=0;i<conNum;i++)
+                    set.insert(curSolution.controllerPlacement[i]);
+
+                if (!seenPlacements.contains(set))
+                {
+                    //такого размещения ещё не было
+                    seenPlacements.insert(set);
+                    curSolution.totalCost=-1;
+                    curSolution.WCLatency=0;
+                    checkChildSolution(&parentSol);
+                }
+                curSolution.controllerPlacement=parentSol.controllerPlacement;
+            }
+        }
+    }
+}
+
 CPPSolution GeneticAlgorithm::generateRandomPlacement(int conNum){
     QVector<int> freeNodes(nodesNumber);
     for (int i=0;i<freeNodes.size();i++)
@@ -802,7 +1199,6 @@ void GeneticAlgorithm::makeParetoPopulation(){
      * сумарную стоимость,
      * средную задержку
      * дисбаланс
-     * если нет решений, то ещё и:
      * максимальную задержку
      * максимальную перегрузку
      */
@@ -982,8 +1378,25 @@ void GeneticAlgorithm::makeMutation(){
     }
 }
 
+void GreedyAndGenetic::computeWeights(){
+    float total = settings->WAvgLat +
+            settings->WDisballance +
+            settings->WOverload +
+            settings->WTotalCost +
+            settings->WWCLatency;
+    if (total==0)
+        W_totalCost = W_avgLayency = W_disballance = W_WCLatency = W_overload = 0.2;
+    else{
+        W_totalCost = settings->WTotalCost / total;
+        W_avgLayency = settings->WAvgLat / total;
+        W_disballance = settings->WDisballance / total;
+        W_WCLatency = settings->WWCLatency / total;
+        W_overload = settings->WOverload / total;
+    }
+}
+
 void GeneticAlgorithm::computeWeights(){
-    int total = settings->WAvgLat +
+    float total = settings->WAvgLat +
             settings->WDisballance +
             settings->WOverload +
             settings->WTotalCost +
@@ -1124,6 +1537,9 @@ bool GeneticAlgorithm::findCorrectDistributionForCur(int failController, int fai
         //selection
         QMultiMap<int, int> distMM;
         for (int dist=0; dist<curDistributionPopulation.size();dist++){
+            //вычисление междоменной и внутридоменной задержки и проверка задержки
+            int WCL = computeWCLTime(failController, failSwitch, &newShortestMatrix,syncTime);
+
             //проверка загруженности контроллеров:
             QVector<int> conLoad(conNum,0);
             for (int i=0;i<nodesNumber;i++)
@@ -1132,45 +1548,26 @@ bool GeneticAlgorithm::findCorrectDistributionForCur(int failController, int fai
                     continue;
                 conLoad[curDistributionPopulation[dist][i]]+=(*network->getNodes())[i].SwitchLoad;
             }
+            bool allIsOk = true;
+            for (int c = 0; c<conNum;c++)
+                if (conLoad[c]>network->getNodes()->
+                        at(curSolution.controllerPlacement[c]).ControllerLoad){
+                    allIsOk=false;
+                    break;
+                }
+            if (allIsOk && WCL < settings->totalLmax)
+                return true;
+
             int maxLoad = conLoad[0];
             for (int i=1;i<conLoad.size();i++)
                 if (conLoad[i] > maxLoad)
                     maxLoad = conLoad[i];
-
-            //вычисление междоменной и  внутридоменной задержки и проверка задержки
-            int WCL = computeWCLTime(failController, failSwitch, &newShortestMatrix,syncTime);
             distMM.insert(maxLoad + WCL, dist);
         }
         QVector<QVector<int>> newDistPopulation;
         for (int i=0;i<settings->geneticPopSize;i++)
             newDistPopulation.push_back(curDistributionPopulation[(distMM.begin()+i).value()]);
         curDistributionPopulation = newDistPopulation;
-    }
-
-    //now check population for correct distribution
-    for (int dist=0;dist<curDistributionPopulation.size();dist++){
-        //проверка загруженности контроллеров:
-        bool allIsOk = true;
-        QVector<int> conLoad(conNum,0);
-        for (int i=0;i<nodesNumber;i++)
-        {
-            if (i==failSwitch)
-                continue;
-            conLoad[curDistributionPopulation[dist][i]]+=(*network->getNodes())[i].SwitchLoad;
-        }
-        for (int c = 0; c<conNum;c++)
-            if (conLoad[c]>network->getNodes()->at(curSolution.controllerPlacement[c]).ControllerLoad){
-                allIsOk=false;
-                break;
-            }
-        if (!allIsOk)
-            continue;
-
-        //вычисление междоменной и  внутридоменной задержки и проверка задержки
-        int WCL = computeWCLTime(failController, failSwitch, &newShortestMatrix,syncTime);
-        if (WCL > settings->totalLmax)
-            continue;
-        return true;
     }
     return false;
 }
@@ -1227,6 +1624,7 @@ CPPSolution GeneticAlgorithm::solveCPP()
                 if (bestMetric==-1 || bestMetric > metric){
                     bestMetric = metric;
                     bestSolution = correctSolutions[i];
+                    bestSolution.mainMetric = bestMetric;
                 }
             }
             if (correctSolutions.size()>0)

@@ -15,7 +15,9 @@ public:
     ControllerPlacementAlgorothm(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus);
 
     virtual CPPSolution solveCPP() = 0;
-    virtual ~ControllerPlacementAlgorothm(){}
+    virtual ~ControllerPlacementAlgorothm(){
+
+    }
 
 protected:
     const NetworkWithAlgorithms* network;
@@ -83,9 +85,10 @@ public:
         connect(&timer, SIGNAL(timeout()), this, SLOT(timeOut()));
     }
 
-    CPPSolution solveCPP();
+    virtual CPPSolution solveCPP();
+    virtual ~GreedyAlgorithm(){}
 
-private:
+protected:
     QTimer timer;
     QSet<QSet<int> >seenPlacements;
     int maxLmax;
@@ -94,9 +97,9 @@ private:
     int curPlacementNumber;
 
 
-    void checkChildSolution(CPPSolution* parentSol);	///recursively calls itself if curent solution is better than parent
-    bool parentComparation(CPPSolution* parentSol);	///compare cur solution with parent. return true if cur is not worse than parent
-    void solveNeighbors();
+    virtual void checkChildSolution(CPPSolution* parentSol);	///recursively calls itself if curent solution is better than parent
+    virtual bool parentComparation(CPPSolution* parentSol);	///compare cur solution with parent. return true if cur is not worse than parent
+    virtual void solveNeighbors();
     void placeInTopoCenter(int conNum);
     void initialDistribution(int failSwich, int failCon, const QVector<QVector<int> > &newShortestMatrix);
     void controllerLoadCheck(int failSwich, int failCon, const QVector<QVector<int> > &newShortestMatrix);
@@ -118,8 +121,11 @@ public:
     }
 
     virtual CPPSolution solveCPP();
+    virtual ~GeneticAlgorithm(){
 
-private:
+    }
+
+protected:
     CPPSolution generateRandomPlacement(int conNum);
     void makeParetoPopulation();    //из curPopulation удаляет все элементы не с границы парето
     void makeCrossing();
@@ -145,6 +151,37 @@ private:
 
     //statistics
     int curPlacementNumber;
+};
+
+
+//=================== G & G =============================
+class GreedyAndGenetic: virtual public GreedyAlgorithm
+{
+    Q_OBJECT
+public:
+    GreedyAndGenetic(const NetworkWithAlgorithms* net, const ControllerPlacementSettings* set, const programStatus *pStatus)
+        :GreedyAlgorithm(net, set, pStatus)
+    {
+        computeWeights();
+        bestSolution.mainMetric = bestSolution.cnstraintMetric = INF;
+    }
+
+    virtual CPPSolution solveCPP() override;
+
+private:
+    virtual void checkChildSolution(CPPSolution* parentSol);
+    virtual void computeWeights();
+    void findDistAndCompute();
+    int findCorrectDistributionForCurWithMetric(int failController, int failSwitch, const QVector<QVector<int> >& newShortestMatrix);
+    void findMainMetricForCur();
+    virtual bool parentComparation(CPPSolution* parentSol);
+    virtual void solveNeighbors() override;
+
+    float W_totalCost;
+    float W_avgLayency;
+    float W_disballance;
+    float W_WCLatency;
+    float W_overload;
 };
 
 #endif // CONTROLLERPLACEMENTALGOROTHM_H

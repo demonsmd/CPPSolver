@@ -11,7 +11,13 @@
 class GRAPHMLReader
 {
 public:
-    GRAPHMLReader(QString topo, const ControllerPlacementSettings* settings);
+    GRAPHMLReader(const QString& topo, const ControllerPlacementSettings* settings);
+    ~GRAPHMLReader(){
+        if(nodes)
+            delete nodes;
+        if(edges)
+            delete edges;
+    }
 
     const QVector<NODE>* getNodes() const {return nodes;}
     const QVector<EDGE>* getEdges() const {return edges;}

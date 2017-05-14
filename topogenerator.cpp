@@ -35,7 +35,8 @@ void topoGenerator::generate(){
                 QCoreApplication::processEvents();
                 if (stop)
                     throw StopProgram("Работа программы прервана пользователем");
-                GRAPHMLReader reader(i->prepend(srcDir.absolutePath() + "/"), settings);
+                QString tmp = i->prepend(srcDir.absolutePath() + "/");
+                GRAPHMLReader reader(tmp, settings);
 
                 generateTopo(reader, dstPath+"/"+reader.topoName + ".graphml");
             }

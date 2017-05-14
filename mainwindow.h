@@ -84,6 +84,7 @@ private slots:
 
 public slots:
     void toLog(const QString& text);	///вывод сообщения в лог
+    void clearLog();
     void processing(int min, int max, int val, QString message);	///отображение progress bar
 
 
@@ -111,8 +112,6 @@ private:
     void initConnections();		///инициализация соединений с сервисом размещения контроллеров
     void statusBarInit();
     void applySettings();
-
-    void clearLog();
 
     void closeEvent(QCloseEvent *event);
 };

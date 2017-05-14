@@ -6,7 +6,7 @@
 #include <QSet>
 #include <QMap>
 
-GRAPHMLReader::GRAPHMLReader(QString fileName, const ControllerPlacementSettings* settings)
+GRAPHMLReader::GRAPHMLReader(const QString& fileName, const ControllerPlacementSettings* settings)
 {
     FixedConnectionCost=-1;
     nodes = new QVector<NODE>;
@@ -22,10 +22,11 @@ void GRAPHMLReader::latencyCalculate()
 {
     for (int i=0;i<edges->size();i++)
     {
-        (*edges)[i].latency=geoLatency((*nodes)[(*edges)[i].srcId].latitude,
-            (*nodes)[(*edges)[i].srcId].longitude,
-            (*nodes)[(*edges)[i].dstId].latitude,
-            (*nodes)[(*edges)[i].dstId].longitude);
+        float lat = geoLatency((*nodes)[(*edges)[i].srcId].latitude,
+                (*nodes)[(*edges)[i].srcId].longitude,
+                (*nodes)[(*edges)[i].dstId].latitude,
+                (*nodes)[(*edges)[i].dstId].longitude);
+        (*edges)[i].latency=lat;
         //sfg
     }
 }
@@ -87,10 +88,10 @@ void GRAPHMLReader::validate()
 
 void GRAPHMLReader::parce(QString fileName)
 {
-    QFile* file = new QFile(fileName);
-    ensureExp(file->open(QIODevice::ReadOnly | QIODevice::Text),QString("Не получилось открыть файл %1").arg(fileName));
+    QFile file(fileName);
+    ensureExp(file.open(QIODevice::ReadOnly | QIODevice::Text),QString("Не получилось открыть файл %1").arg(fileName));
     topoName = QFileInfo(fileName).baseName();
-    QXmlStreamReader xmlstream(file);
+    QXmlStreamReader xmlstream(&file);
 
     QString idTag;
     QString longitude;

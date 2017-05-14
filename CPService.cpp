@@ -8,7 +8,7 @@ ControllerPlacementService::ControllerPlacementService()
     defSettings = new DefaultCPSettings();
     visualizator=NULL;
     PStatus = NOTRUNNING;
-    ALGORITHMS = QStringList()<<"Переборный"<<"Жадный"<<"Генетический";
+    ALGORITHMS = QStringList()<<"Переборный"<<"Жадный"<<"Генетический"<<"Жадный+Генетический";
 }
 
 ControllerPlacementService::~ControllerPlacementService()
@@ -42,17 +42,19 @@ void ControllerPlacementService::saveNetworkSolution(int i)
     solvedTopoList[i].solution.masterControllersDistribution=solution.masterControllersDistribution;
     solvedTopoList[i].solution.totalCost=solution.totalCost;
 
-    QFile logFile(CPSettings->outFileName);
+    QFile logFile(resOutFile);
     if (!logFile.open(QIODevice::Append | QIODevice::Text))
     {
-        toLog("<font color=\"red\">/nНевозможно открыть файл для записи/n</font>!");
+        if (!EASY_OUTPUT)
+            toLog("<font color=\"red\">/nНевозможно открыть файл для записи/n</font>!");
         return;
     }
     QTextStream stream(&logFile);
     stream	<< inFilesList[i].right(inFilesList[i].size() - inFilesList[i].lastIndexOf("/") - 1)<<";"
         << network->getTopoSize()<<";"
         << network->getEdges()->size()<<";"
-        << ";;"
+        << solution.controllerPlacement.size()<<";"
+        << ";"
         << ALGORITHMS[CPSettings->algorithm]<<";"
         << CPSettings->totalLmax<<";";
 
@@ -68,7 +70,8 @@ void ControllerPlacementService::saveNetworkSolution(int i)
     else
         stream<<"Linear ("<<CPSettings->SCTF_a<<"*x+"<<CPSettings->SCTF_b<<");";
     stream<<solution.WCLatency<<";"<<solution.avgLayency<<";"<<solution.totalCost<<";";
-    stream<<solution.WorkTime<<";"<<solution.FoundIteration<<";"<<solution.totalNumberOfIterations<<";"<<endl;
+    stream<<solution.WorkTime<<";"<<solution.FoundIteration<<";"<<solution.totalNumberOfIterations<<";";
+    stream<<solution.mainMetric<<";"<<endl;
 
 
     for (int i=0;i<solution.controllerPlacement.size();i++)
@@ -105,90 +108,104 @@ void ControllerPlacementService::startButtonPressed()
     PStatus = RUNNING;
     try
     {
-        int doneTopos = 0;
-        QString topoTag;
-
-        QFile logFile(CPSettings->outFileName);
-        ensureExp(logFile.open(QIODevice::WriteOnly | QIODevice::Text), "Невозможно открыть лог файл");
-        QTextStream stream(&logFile);
-        stream<<"Topo name;Nodes number;Edges number;Controller placement;Switch distribution;Algorithm;Lmax;Cost metric;Latency metric;WCL;AVG_LAT;COST;Time(msec);Found_On_Iteration;Iterations"<<endl;
-        logFile.close();
-
-
         if(CPSettings->useGraphviz)
         {
-            if (visualizator)
+            if (visualizator){
                 delete visualizator;
+            }
             visualizator = new GRAPHVIZ(CPSettings->pathToGraphviz,
                             CPSettings->pathToImgFolder, "png");
         }
-        getInFiles();
-        toLog("Найдено входных файлов: " + QString::number(inFilesList.size()));
-        solvedTopoList.resize(inFilesList.size());
+        for (int i=0; i<LAUNCH_NUM; i++){
+            cout<<i<<endl;
+            if (EASY_OUTPUT)
+                toLog(QString::number(i));
+            //clearLog();
+            int doneTopos = 0;
+            QString topoTag;
 
-        for (curTopoNum=0 ; curTopoNum<inFilesList.size(); curTopoNum++)
-        {
-            try
+            if (LAUNCH_NUM>1)
+                resOutFile = QString("%1_%2.csv").
+                    arg(CPSettings->outFileName.left(CPSettings->outFileName.size()-4)).
+                    arg(QString::number(i));
+            else
+                resOutFile =CPSettings->outFileName;
+
+            QFile logFile(resOutFile);
+            ensureExp(logFile.open(QIODevice::WriteOnly | QIODevice::Text), "Невозможно открыть лог файл");
+            QTextStream stream(&logFile);
+            stream<<"Topo name;Nodes number;Edges number;Controller placement;Switch distribution;Algorithm;Lmax;Cost metric;Latency metric;WCL;AVG_LAT;COST;Time(msec);Found_On_Iteration;Iterations;Metric"<<endl;
+            logFile.close();
+
+            getInFiles();
+            if (!EASY_OUTPUT)
+                toLog("Найдено входных файлов: " + QString::number(inFilesList.size()));
+            solvedTopoList.resize(inFilesList.size());
+
+            for (curTopoNum=0 ; curTopoNum<inFilesList.size(); curTopoNum++)
             {
-                if (CPSettings->useGraphviz)
-                    topoTag = QString("<a href=\"graphviz:%1\">%2</a>").arg(QString::number(curTopoNum)).arg(inFilesList.at(curTopoNum));
-                else
-                    topoTag = QString("<font color=\"blue\">%1</font>").arg(inFilesList.at(curTopoNum));
+                try
+                {
+                    if (CPSettings->useGraphviz)
+                        topoTag = QString("<a href=\"graphviz:%1\">%2</a>").arg(QString::number(curTopoNum)).arg(inFilesList.at(curTopoNum));
+                    else
+                        topoTag = QString("<font color=\"blue\">%1</font>").arg(inFilesList.at(curTopoNum));
 
-//				emit processingTopo(0,inFilesList.size()-1, curTopoNum, QString("Обрабатывается топология %1").arg(inFilesList.at(curTopoNum)));
-                xmlReader = new GRAPHMLReader(inFilesList.at(curTopoNum), CPSettings);
+    //				emit processingTopo(0,inFilesList.size()-1, curTopoNum, QString("Обрабатывается топология %1").arg(inFilesList.at(curTopoNum)));
+                    xmlReader = std::shared_ptr<GRAPHMLReader>(new GRAPHMLReader(inFilesList.at(curTopoNum), CPSettings));
+                    network = std::shared_ptr<NetworkWithAlgorithms>(new NetworkWithAlgorithms(xmlReader.get()->getNodes(),xmlReader.get()->getEdges()
+                            ,CPSettings ,xmlReader.get()->getFixedConnectionCost()));
+                    ensureExp(network.get()->CheckBiconnectivity(), "Сеть не является двусвязной");
+                    computeLmax();
+                    if (CPSettings->algorithm==0)
+                        algorithm = std::shared_ptr<EnumerationAlgorithm>(new EnumerationAlgorithm(network.get(), CPSettings, &PStatus));
+                    else if (CPSettings->algorithm==1)
+                        algorithm = std::shared_ptr<GreedyAlgorithm>(new GreedyAlgorithm(network.get(), CPSettings, &PStatus));
+                    else if (CPSettings->algorithm==2)
+                        algorithm = std::shared_ptr<GeneticAlgorithm>(new GeneticAlgorithm(network.get(), CPSettings, &PStatus));
+                    else if (CPSettings->algorithm==3)
+                        algorithm = std::shared_ptr<GreedyAndGenetic>(new GreedyAndGenetic(network.get(), CPSettings, &PStatus));
+                    else
+                        throw Exceptions("Неизвестный алгоритм");
+                    connect(algorithm.get(), SIGNAL(curTopoProcess(int, int, int)),
+                        this, SLOT(curTopoProcess(int, int, int)));
 
-                network = new NetworkWithAlgorithms(xmlReader->getNodes(),xmlReader->getEdges()
-                        ,CPSettings ,xmlReader->getFixedConnectionCost());
-                ensureExp(network->CheckBiconnectivity(), "Сеть не является двусвязной");
+                    QTime timer;
+                    timer.start();
+                    solution = algorithm.get()->solveCPP();
+                    solution.WorkTime = timer.elapsed();
 
-                computeLmax();
-
-                if (CPSettings->algorithm==0)
-                    algorithm = new EnumerationAlgorithm(network, CPSettings, &PStatus);
-                else if (CPSettings->algorithm==1)
-                    algorithm = new GreedyAlgorithm(network, CPSettings, &PStatus);
-                else if (CPSettings->algorithm==2)
-                    algorithm = new GeneticAlgorithm(network, CPSettings, &PStatus);
-                else
-                    throw Exceptions("Неизвестный алгоритм");
-                connect(algorithm, SIGNAL(curTopoProcess(int, int, int)),
-                    this, SLOT(curTopoProcess(int, int, int)));
-
-                QTime timer;
-                timer.start();
-                solution = algorithm->solveCPP();
-                solution.WorkTime = timer.elapsed();
-
-                ensureExp(solution.controllerPlacement.size()>0,"Не найдено решения для данных параметров");
+                    ensureExp(solution.controllerPlacement.size()>0,"Не найдено решения для данных параметров");
 
 
-                saveNetworkSolution(curTopoNum);
+                    saveNetworkSolution(curTopoNum);
 
-                doneTopos++;
-                toLog(QString("В топологии %1[%2] была <font color=\"green\"><b><u>успешно</u></b></font> обработана!").arg(topoTag).arg(QString::number(network->getTopoSize())));
-                delete algorithm;
-                delete network;
-                delete xmlReader;
+                    doneTopos++;
+                    if (!EASY_OUTPUT)
+                        toLog(QString("В топологии %1[%2] была <font color=\"green\"><b><u>успешно</u></b></font> обработана!").arg(topoTag).arg(QString::number(network.get()->getTopoSize())));
+                }
+                catch (Exceptions ex)
+                {
+                    if (!EASY_OUTPUT)
+                        toLog(QString("В топологии <font color=\"blue\">%1</font> была найдена <font color=\"red\"><b><u>ошибка</u></b>: %2</font>. Эта топология будет пропущена!").arg(inFilesList.at(curTopoNum)).arg(ex.getText()));
+                }
             }
-            catch (Exceptions ex)
-            {
-                toLog(QString("В топологии <font color=\"blue\">%1</font> была найдена <font color=\"red\"><b><u>ошибка</u></b>: %2</font>. Эта топология будет пропущена!").arg(inFilesList.at(curTopoNum)).arg(ex.getText()));
-            }
+            emit processingTopo(0,0,0,QString("Готово! %1 из %2 файлов успешно обработаны").arg(QString::number(doneTopos)).arg(QString::number(inFilesList.size())));
         }
-        emit processingTopo(0,0,0,QString("Готово! %1 из %2 файлов успешно обработаны").arg(QString::number(doneTopos)).arg(QString::number(inFilesList.size())));
         PStatus = NOTRUNNING;
         programFinnished();
     }
     catch(StopProgram ex)
     {
-        toLog(ex.getText());
+        if (!EASY_OUTPUT)
+            toLog(ex.getText());
         emit processingTopo(0,0,0,QString("Прервано пользователем."));
         programFinnished();
     }
     catch(Exceptions ex)
     {
-        toLog(ex.getText());
+        if (!EASY_OUTPUT)
+            toLog(ex.getText());
         programFinnished();
     }
     catch(...)
@@ -196,7 +213,6 @@ void ControllerPlacementService::startButtonPressed()
         toLog("lol cats!");
         programFinnished();
     }
-
 }
 
 void ControllerPlacementService::curTopoProcess(int done, int from, int conNumber)
@@ -259,10 +275,13 @@ void ControllerPlacementService::computeLmax()
     {
         const QVector< QVector<int> >* matr = network->getShortestMatrix();
         int max = 0;
-        for (int i=1;i<matr->size();i++)
-            if ((*matr)[0][i]>max)
-                max = (*matr)[0][i];
+        for (int i=0;i<matr->size();i++)
+            for (int j=i; j<matr->size(); j++)
+                if ((*matr)[i][j]>max)
+                    max = (*matr)[i][j];
         CPSettings->totalLmax=max*CPSettings->Lmax;
+        if (max == INF)
+            cout<<max<<endl;
     }
     else
         CPSettings->totalLmax=CPSettings->Lmax;
